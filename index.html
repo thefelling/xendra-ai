@@ -20,7 +20,6 @@
             align-items: center;
         }
 
-        /* Login Page */
         .login-container {
             background: white;
             padding: 40px;
@@ -74,83 +73,16 @@
             transform: translateY(-2px);
         }
 
-        /* Main Container dengan Split Screen */
-        .main-container {
-            display: none;
-            width: 100%;
-            height: 100vh;
-            max-width: 100%;
-            background: white;
-        }
-
-        .main-container.with-preview {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .main-container.no-preview {
-            display: block;
-        }
-
-        /* Chat Container */
         .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            border-right: 1px solid #e0e0e0;
-        }
-
-        /* Preview Container */
-        .preview-container {
-            background: #f8f9fa;
             display: none;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .preview-container.active {
-            display: flex;
-        }
-
-        .preview-header {
-            background: #2d2d2d;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .preview-header h3 {
-            font-size: 14px;
-            font-weight: normal;
-        }
-
-        .preview-close {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .preview-close:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .preview-content {
-            flex: 1;
-            background: white;
-            overflow: auto;
-        }
-
-        .preview-iframe {
             width: 100%;
-            height: 100%;
-            border: none;
+            max-width: 900px;
+            height: 90vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            flex-direction: column;
         }
 
         .chat-header {
@@ -251,15 +183,10 @@
             margin: 0;
         }
 
-        .code-actions {
+        .copy-btn {
             position: absolute;
             top: 8px;
             right: 8px;
-            display: flex;
-            gap: 5px;
-        }
-
-        .copy-btn, .preview-btn {
             background: #667eea;
             color: white;
             border: none;
@@ -270,7 +197,7 @@
             transition: all 0.2s;
         }
 
-        .copy-btn:hover, .preview-btn:hover {
+        .copy-btn:hover {
             background: #5568d3;
         }
 
@@ -438,39 +365,33 @@
             transform: translateY(0);
         }
 
-        .chat-messages::-webkit-scrollbar,
-        .preview-content::-webkit-scrollbar {
+        .chat-messages::-webkit-scrollbar {
             width: 8px;
         }
 
-        .chat-messages::-webkit-scrollbar-track,
-        .preview-content::-webkit-scrollbar-track {
+        .chat-messages::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb,
-        .preview-content::-webkit-scrollbar-thumb {
+        .chat-messages::-webkit-scrollbar-thumb {
             background: #667eea;
             border-radius: 4px;
         }
 
-        @media (max-width: 1024px) {
-            .main-container.with-preview {
-                grid-template-columns: 1fr;
+        @media (max-width: 768px) {
+            .chat-container {
+                height: 100vh;
+                border-radius: 0;
+                max-width: 100%;
             }
 
-            .preview-container {
-                position: fixed;
-                top: 0;
-                right: 0;
-                width: 100%;
-                z-index: 999;
+            .message-content {
+                max-width: 85%;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Login Page -->
     <div class="login-container" id="loginPage">
         <h1>⚡ XENDRA AI</h1>
         <p>Asisten AI Pribadi Anda</p>
@@ -486,78 +407,59 @@
         <div id="loginError"></div>
     </div>
 
-    <!-- Main Container dengan Split Screen -->
-    <div class="main-container" id="mainContainer">
-        <!-- Chat Section -->
-        <div class="chat-container">
-            <div class="chat-header">
-                <h2>⚡ XENDRA AI</h2>
-                <button class="logout-btn" onclick="logout()">Keluar</button>
-            </div>
-            
-            <div class="chat-messages" id="chatMessages">
-                <div class="message assistant">
-                    <div class="message-avatar">🤖</div>
-                    <div class="message-content">
-                        Halo! Saya XENDRA AI, asisten pribadi Anda. Saya bisa membantu Anda dengan:
-                        <br><br>
-                        • 🔍 Mencari dan meneliti informasi apapun
-                        <br>• 📄 Menulis artikel dan konten lengkap
-                        <br>• 💻 Membuat kode dan mengembangkan website (dengan preview otomatis!)
-                        <br>• 🖼️ Generate gambar dengan DALL-E
-                        <br><br>
-                        Tanyakan apa saja dengan bahasa natural, seperti Anda sedang mengobrol!
-                    </div>
-                </div>
-                <div class="typing-indicator" id="typingIndicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+    <div class="chat-container" id="chatPage">
+        <div class="chat-header">
+            <h2>⚡ XENDRA AI</h2>
+            <button class="logout-btn" onclick="logout()">Keluar</button>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    Halo! Saya XENDRA AI, asisten pribadi Anda. Saya bisa membantu Anda dengan:
+                    <br><br>
+                    • 🔍 Mencari dan meneliti informasi apapun
+                    <br>• 📄 Menulis artikel dan konten lengkap
+                    <br>• 💻 Membuat kode dan mengembangkan website
+                    <br>• 🖼️ Generate gambar dengan DALL-E
+                    <br><br>
+                    Tanyakan apa saja dengan bahasa natural, seperti Anda sedang mengobrol!
                 </div>
             </div>
-
-            <div class="chat-input-container">
-                <div class="chat-input-wrapper">
-                    <textarea 
-                        id="chatInput" 
-                        class="chat-input" 
-                        placeholder="Tanya apa saja... (contoh: 'Buat landing page coffee shop')"
-                        rows="1"
-                    ></textarea>
-                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
-                </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
         </div>
 
-        <!-- Preview Section -->
-        <div class="preview-container" id="previewContainer">
-            <div class="preview-header">
-                <h3>📱 Preview</h3>
-                <button class="preview-close" onclick="closePreview()">✕ Tutup</button>
-            </div>
-            <div class="preview-content">
-                <iframe id="previewFrame" class="preview-iframe"></iframe>
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Tanya apa saja... (contoh: 'Buat artikel tentang AI', 'Generate gambar sunset', 'Bantu saya coding website')"
+                    rows="1"
+                ></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div class="toast" id="toast"></div>
 
     <script>
         const API_URL = 'https://xendra-ai.vincent-ssb88.workers.dev';
         const CORRECT_PASSWORD = 'Lambada001';
         let conversationHistory = [];
-        let currentHtmlCode = '';
 
-        // Auto-resize textarea
         const chatInput = document.getElementById('chatInput');
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = (this.scrollHeight) + 'px';
         });
 
-        // Enter to send (Shift+Enter for new line)
         chatInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -565,14 +467,13 @@
             }
         });
 
-        // Login Handler
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const password = document.getElementById('password').value;
             
             if (password === CORRECT_PASSWORD) {
                 document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('mainContainer').classList.add('no-preview');
+                document.getElementById('chatPage').style.display = 'flex';
                 sessionStorage.setItem('xendra_logged_in', 'true');
             } else {
                 document.getElementById('loginError').innerHTML = 
@@ -580,19 +481,16 @@
             }
         });
 
-        // Check if already logged in
         if (sessionStorage.getItem('xendra_logged_in') === 'true') {
             document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('mainContainer').classList.add('no-preview');
+            document.getElementById('chatPage').style.display = 'flex';
         }
 
-        // Logout
         function logout() {
             sessionStorage.removeItem('xendra_logged_in');
             location.reload();
         }
 
-        // Toast notification
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -602,36 +500,6 @@
             }, 3000);
         }
 
-        // Show preview
-        function showPreview(htmlCode) {
-            const mainContainer = document.getElementById('mainContainer');
-            const previewContainer = document.getElementById('previewContainer');
-            const previewFrame = document.getElementById('previewFrame');
-            
-            mainContainer.classList.remove('no-preview');
-            mainContainer.classList.add('with-preview');
-            previewContainer.classList.add('active');
-            
-            // Write HTML to iframe
-            const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-            iframeDoc.open();
-            iframeDoc.write(htmlCode);
-            iframeDoc.close();
-            
-            currentHtmlCode = htmlCode;
-        }
-
-        // Close preview
-        function closePreview() {
-            const mainContainer = document.getElementById('mainContainer');
-            const previewContainer = document.getElementById('previewContainer');
-            
-            mainContainer.classList.remove('with-preview');
-            mainContainer.classList.add('no-preview');
-            previewContainer.classList.remove('active');
-        }
-
-        // Copy code function
         function copyCode(button, code) {
             navigator.clipboard.writeText(code).then(() => {
                 const originalText = button.textContent;
@@ -645,24 +513,14 @@
                 }, 2000);
             }).catch(err => {
                 showToast('Gagal menyalin code');
-                console.error('Copy failed:', err);
             });
         }
 
-        // Preview HTML code
-        function previewCode(code) {
-            showPreview(code);
-            showToast('Preview ditampilkan!');
-        }
-
-        // Download image function
         async function downloadImage(url, filename = 'xendra-ai-image.png') {
             try {
                 showToast('Mengunduh gambar...');
-                
                 const response = await fetch(url);
                 const blob = await response.blob();
-                
                 const blobUrl = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = blobUrl;
@@ -670,16 +528,13 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
                 window.URL.revokeObjectURL(blobUrl);
                 showToast('✓ Gambar berhasil diunduh!');
             } catch (error) {
                 showToast('❌ Gagal mengunduh gambar');
-                console.error('Download failed:', error);
             }
         }
 
-        // Send Message dengan timeout
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
@@ -702,9 +557,8 @@
             });
             
             try {
-                // Set timeout 30 detik
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
                 
                 const response = await fetch(`${API_URL}/chat`, {
                     method: 'POST',
@@ -718,7 +572,6 @@
                 });
                 
                 clearTimeout(timeoutId);
-                
                 const data = await response.json();
                 
                 document.getElementById('typingIndicator').style.display = 'none';
@@ -731,16 +584,13 @@
                     }
                 } else {
                     await addMessageWithStreaming(data.response, 'assistant');
-                    
                     conversationHistory.push({
                         role: 'assistant',
                         content: data.response
                     });
                 }
-                
             } catch (error) {
                 document.getElementById('typingIndicator').style.display = 'none';
-                
                 if (error.name === 'AbortError') {
                     addMessage('❌ Request timeout. Coba lagi atau minta response yang lebih pendek.', 'assistant');
                 } else {
@@ -753,7 +603,6 @@
             input.focus();
         }
 
-        // Add message with streaming effect
         async function addMessageWithStreaming(text, sender) {
             const messagesDiv = document.getElementById('chatMessages');
             const typingIndicator = document.getElementById('typingIndicator');
@@ -772,7 +621,6 @@
             messageDiv.appendChild(contentDiv);
             messagesDiv.insertBefore(messageDiv, typingIndicator);
             
-            // Streaming effect
             const chunks = text.split(/([.!?]\s+|\n)/);
             let currentText = '';
             
@@ -784,45 +632,9 @@
             }
             
             contentDiv.innerHTML = formatMessage(text);
-            
-            // Auto show preview jika ada HTML code
-            const htmlMatch = text.match(/```html\n([\s\S]+?)```/);
-            if (htmlMatch) {
-                const fullHtml = extractFullHtml(text);
-                if (fullHtml) {
-                    setTimeout(() => showPreview(fullHtml), 500);
-                }
-            }
-            
             scrollToBottom();
         }
 
-        // Extract full HTML from message
-        function extractFullHtml(text) {
-            const htmlMatch = text.match(/```html\n([\s\S]+?)```/);
-            const cssMatch = text.match(/```css\n([\s\S]+?)```/);
-            const jsMatch = text.match(/```javascript\n([\s\S]+?)```/);
-            
-            if (!htmlMatch) return null;
-            
-            let html = htmlMatch[1];
-            
-            // Inject CSS if exists
-            if (cssMatch) {
-                const css = cssMatch[1];
-                html = html.replace('</head>', `<style>${css}</style></head>`);
-            }
-            
-            // Inject JS if exists
-            if (jsMatch) {
-                const js = jsMatch[1];
-                html = html.replace('</body>', `<script>${js}</script></body>`);
-            }
-            
-            return html;
-        }
-
-        // Add message (instant)
         function addMessage(text, sender) {
             const messagesDiv = document.getElementById('chatMessages');
             const typingIndicator = document.getElementById('typingIndicator');
@@ -845,36 +657,21 @@
             scrollToBottom();
         }
 
-        // Format message with markdown-like syntax
         function formatMessage(text) {
-            // Detect and format code blocks with copy and preview buttons
             text = text.replace(/```(\w+)?\n([\s\S]+?)```/g, function(match, lang, code) {
                 const cleanCode = escapeHtml(code.trim());
-                const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
-                
-                let actions = `<button class="copy-btn" onclick="copyCode(this, \`${cleanCode.replace(/`/g, '\\`')}\`)">📋 Salin</button>`;
-                
-                // Add preview button for HTML
-                if (lang === 'html') {
-                    actions += `<button class="preview-btn" onclick="previewCode(\`${cleanCode.replace(/`/g, '\\`')}\`)">👁️ Preview</button>`;
-                }
-                
                 return `<div class="code-block-wrapper">
-                    <div class="code-actions">${actions}</div>
-                    <pre><code id="${uniqueId}">${cleanCode}</code></pre>
+                    <button class="copy-btn" onclick="copyCode(this, \`${cleanCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)">
+                        📋 Salin Code
+                    </button>
+                    <pre><code>${cleanCode}</code></pre>
                 </div>`;
             });
             
-            // Inline code
             text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-            
-            // Bold
             text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-            
-            // Line breaks
             text = text.replace(/\n/g, '<br>');
             
-            // Detect image URLs with download button
             text = text.replace(/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/gi, function(match) {
                 return `<div class="image-wrapper">
                     <img src="${match}" alt="Gambar yang Dihasilkan">
