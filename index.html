@@ -2,14 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>XENDRA AI - Personal AI Assistant</title>
-    <link rel="icon" type="image/png" href="fav.png" />
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
 
         :root {
@@ -27,13 +32,10 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
             color: var(--text-primary);
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        .container {
-            display: flex;
+            width: 100%;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Login Screen */
@@ -42,7 +44,16 @@
             align-items: center;
             justify-content: center;
             width: 100%;
+            height: 100%;
             background: linear-gradient(135deg, rgba(0, 217, 255, 0.05) 0%, rgba(217, 70, 239, 0.05) 100%);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .login-screen.hidden {
+            display: none;
         }
 
         .login-card {
@@ -50,7 +61,7 @@
             border: 2px solid var(--border-color);
             border-radius: 20px;
             padding: 60px 40px;
-            width: 100%;
+            width: 90%;
             max-width: 450px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 217, 255, 0.1);
@@ -148,12 +159,24 @@
             cursor: not-allowed;
         }
 
+        .error-message {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 5px;
+            min-height: 16px;
+        }
+
         /* Chat Screen */
         .chat-screen {
             display: none;
             flex-direction: column;
             width: 100%;
-            height: 100vh;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999;
+            background: var(--dark-bg);
         }
 
         .chat-screen.active {
@@ -163,10 +186,11 @@
         .chat-header {
             background: var(--card-bg);
             border-bottom: 1px solid var(--border-color);
-            padding: 20px;
+            padding: 15px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-shrink: 0;
         }
 
         .header-title {
@@ -176,7 +200,7 @@
         }
 
         .header-title h2 {
-            font-size: 20px;
+            font-size: 18px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -229,11 +253,12 @@
         }
 
         .message-content {
-            max-width: 70%;
+            max-width: 75%;
             padding: 12px 16px;
             border-radius: 12px;
             word-wrap: break-word;
             line-height: 1.5;
+            font-size: 14px;
         }
 
         .message.user .message-content {
@@ -248,28 +273,36 @@
             color: var(--text-secondary);
         }
 
+        .message.error .message-content {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+
         .chat-footer {
             background: var(--card-bg);
             border-top: 1px solid var(--border-color);
-            padding: 20px;
+            padding: 15px 20px;
+            flex-shrink: 0;
         }
 
         .feature-buttons {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+            gap: 8px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
         }
 
         .feature-btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             background: rgba(0, 217, 255, 0.1);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             color: var(--text-secondary);
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .feature-btn.active {
@@ -284,40 +317,42 @@
 
         .input-area {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
         .input-area input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 10px 12px;
             background: rgba(0, 217, 255, 0.05);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 8px;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.3s ease;
         }
 
         .input-area input:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+            box-shadow: 0 0 12px rgba(0, 217, 255, 0.2);
         }
 
         .send-btn {
-            padding: 12px 20px;
+            padding: 10px 16px;
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             color: var(--text-primary);
             cursor: pointer;
             font-weight: bold;
+            font-size: 13px;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .send-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 217, 255, 0.4);
+            box-shadow: 0 6px 16px rgba(0, 217, 255, 0.3);
         }
 
         .send-btn:disabled {
@@ -325,19 +360,14 @@
             cursor: not-allowed;
         }
 
-        .error-message {
-            color: #ff6b6b;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
         .loading {
             display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: var(--primary);
             border-radius: 50%;
             animation: blink 1.4s infinite;
+            margin-right: 4px;
         }
 
         @keyframes blink {
@@ -347,7 +377,7 @@
 
         /* Scrollbar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
 
         ::-webkit-scrollbar-track {
@@ -356,7 +386,7 @@
 
         ::-webkit-scrollbar-thumb {
             background: var(--primary);
-            border-radius: 4px;
+            border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
@@ -365,15 +395,30 @@
 
         @media (max-width: 768px) {
             .login-card {
-                margin: 20px;
+                padding: 40px 20px;
             }
 
             .message-content {
-                max-width: 90%;
+                max-width: 85%;
+                font-size: 13px;
             }
 
             .feature-buttons {
-                overflow-x: auto;
+                gap: 6px;
+            }
+
+            .feature-btn {
+                padding: 5px 10px;
+                font-size: 10px;
+            }
+
+            .input-area input {
+                font-size: 12px;
+            }
+
+            .send-btn {
+                font-size: 12px;
+                padding: 8px 12px;
             }
         }
     </style>
@@ -395,6 +440,7 @@
                         id="password" 
                         placeholder="Enter your exclusive password"
                         required
+                        autocomplete="off"
                     >
                 </div>
                 <button type="submit" class="login-btn" id="loginBtn">
@@ -449,6 +495,7 @@
         const API_URL = 'https://xendra-ai.vincent-ssb88.workers.dev';
         let currentFeature = 'text';
         let isAuthenticated = false;
+        let isLoading = false;
 
         // DOM Elements
         const loginScreen = document.getElementById('loginScreen');
@@ -483,7 +530,7 @@
                 if (data.success) {
                     isAuthenticated = true;
                     localStorage.setItem('xendra_authenticated', 'true');
-                    loginScreen.style.display = 'none';
+                    loginScreen.classList.add('hidden');
                     chatScreen.classList.add('active');
                     messageInput.focus();
                 } else {
@@ -506,7 +553,7 @@
             passwordInput.value = '';
             loginError.textContent = '';
             chatError.textContent = '';
-            loginScreen.style.display = 'flex';
+            loginScreen.classList.remove('hidden');
             chatScreen.classList.remove('active');
             passwordInput.focus();
         });
@@ -520,14 +567,22 @@
             });
         });
 
+        // Auto-split response into paragraphs
+        function splitResponse(text) {
+            // Split by double newlines or periods followed by space
+            const paragraphs = text.split(/\n\n+|(?<=[.!?])\s+(?=[A-Z])/);
+            return paragraphs.filter(p => p.trim().length > 0);
+        }
+
         // Send message handler
         async function sendMessage() {
             const message = messageInput.value.trim();
-            if (!message || !isAuthenticated) return;
+            if (!message || !isAuthenticated || isLoading) return;
 
             chatError.textContent = '';
             messageInput.value = '';
             sendBtn.disabled = true;
+            isLoading = true;
 
             // Add user message
             addMessage(message, 'user');
@@ -535,7 +590,7 @@
             // Add loading indicator
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'message assistant';
-            loadingDiv.innerHTML = '<div class="message-content"><span class="loading"></span></div>';
+            loadingDiv.innerHTML = '<div class="message-content"><span class="loading"></span>Thinking...</div>';
             chatMessages.appendChild(loadingDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
@@ -555,15 +610,22 @@
                 loadingDiv.remove();
 
                 if (data.success) {
-                    addMessage(data.response, 'assistant');
+                    // Split response and add each part
+                    const parts = splitResponse(data.response);
+                    parts.forEach(part => {
+                        if (part.trim()) {
+                            addMessage(part.trim(), 'assistant');
+                        }
+                    });
                 } else {
-                    addMessage('❌ Error: ' + (data.message || 'Unknown error'), 'assistant');
+                    addMessage('❌ Error: ' + (data.message || 'Unknown error'), 'error');
                 }
             } catch (error) {
                 loadingDiv.remove();
-                addMessage('❌ Connection error: ' + error.message, 'assistant');
+                addMessage('❌ Connection error: ' + error.message, 'error');
             } finally {
                 sendBtn.disabled = false;
+                isLoading = false;
                 messageInput.focus();
             }
         }
@@ -595,13 +657,20 @@
         window.addEventListener('load', () => {
             if (localStorage.getItem('xendra_authenticated')) {
                 isAuthenticated = true;
-                loginScreen.style.display = 'none';
+                loginScreen.classList.add('hidden');
                 chatScreen.classList.add('active');
                 messageInput.focus();
             } else {
                 passwordInput.focus();
             }
         });
+
+        // Prevent zoom on mobile
+        document.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
 </body>
 </html>
