@@ -74,17 +74,83 @@
             transform: translateY(-2px);
         }
 
-        /* Chat Container */
-        .chat-container {
+        /* Main Container dengan Split Screen */
+        .main-container {
             display: none;
             width: 100%;
-            max-width: 900px;
-            height: 90vh;
+            height: 100vh;
+            max-width: 100%;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+        }
+
+        .main-container.with-preview {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .main-container.no-preview {
+            display: block;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            display: flex;
             flex-direction: column;
+            height: 100vh;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        /* Preview Container */
+        .preview-container {
+            background: #f8f9fa;
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .preview-container.active {
+            display: flex;
+        }
+
+        .preview-header {
+            background: #2d2d2d;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-header h3 {
+            font-size: 14px;
+            font-weight: normal;
+        }
+
+        .preview-close {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .preview-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .preview-content {
+            flex: 1;
+            background: white;
+            overflow: auto;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
 
         .chat-header {
@@ -170,7 +236,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* Code Block dengan tombol Copy */
         .code-block-wrapper {
             position: relative;
             margin: 10px 0;
@@ -186,10 +251,15 @@
             margin: 0;
         }
 
-        .copy-btn {
+        .code-actions {
             position: absolute;
             top: 8px;
             right: 8px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .copy-btn, .preview-btn {
             background: #667eea;
             color: white;
             border: none;
@@ -200,7 +270,7 @@
             transition: all 0.2s;
         }
 
-        .copy-btn:hover {
+        .copy-btn:hover, .preview-btn:hover {
             background: #5568d3;
         }
 
@@ -221,7 +291,6 @@
             padding: 0;
         }
 
-        /* Image dengan tombol Download */
         .image-wrapper {
             position: relative;
             display: inline-block;
@@ -349,7 +418,6 @@
             text-align: center;
         }
 
-        /* Toast notification */
         .toast {
             position: fixed;
             bottom: 20px;
@@ -370,35 +438,33 @@
             transform: translateY(0);
         }
 
-        /* Scrollbar */
-        .chat-messages::-webkit-scrollbar {
+        .chat-messages::-webkit-scrollbar,
+        .preview-content::-webkit-scrollbar {
             width: 8px;
         }
 
-        .chat-messages::-webkit-scrollbar-track {
+        .chat-messages::-webkit-scrollbar-track,
+        .preview-content::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb {
+        .chat-messages::-webkit-scrollbar-thumb,
+        .preview-content::-webkit-scrollbar-thumb {
             background: #667eea;
             border-radius: 4px;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .chat-container {
-                height: 100vh;
-                border-radius: 0;
-                max-width: 100%;
+        @media (max-width: 1024px) {
+            .main-container.with-preview {
+                grid-template-columns: 1fr;
             }
 
-            .message-content {
-                max-width: 85%;
-            }
-
-            .download-btn {
-                font-size: 12px;
-                padding: 6px 12px;
+            .preview-container {
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 100%;
+                z-index: 999;
             }
         }
     </style>
@@ -420,43 +486,57 @@
         <div id="loginError"></div>
     </div>
 
-    <!-- Chat Page -->
-    <div class="chat-container" id="chatPage">
-        <div class="chat-header">
-            <h2>⚡ XENDRA AI</h2>
-            <button class="logout-btn" onclick="logout()">Keluar</button>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="message assistant">
-                <div class="message-avatar">🤖</div>
-                <div class="message-content">
-                    Halo! Saya XENDRA AI, asisten pribadi Anda. Saya bisa membantu Anda dengan:
-                    <br><br>
-                    • 🔍 Mencari dan meneliti informasi apapun
-                    <br>• 📄 Menulis artikel dan konten lengkap
-                    <br>• 💻 Membuat kode dan mengembangkan website
-                    <br>• 🖼️ Generate gambar dengan DALL-E
-                    <br><br>
-                    Tanyakan apa saja dengan bahasa natural, seperti Anda sedang mengobrol!
+    <!-- Main Container dengan Split Screen -->
+    <div class="main-container" id="mainContainer">
+        <!-- Chat Section -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>⚡ XENDRA AI</h2>
+                <button class="logout-btn" onclick="logout()">Keluar</button>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="message assistant">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        Halo! Saya XENDRA AI, asisten pribadi Anda. Saya bisa membantu Anda dengan:
+                        <br><br>
+                        • 🔍 Mencari dan meneliti informasi apapun
+                        <br>• 📄 Menulis artikel dan konten lengkap
+                        <br>• 💻 Membuat kode dan mengembangkan website (dengan preview otomatis!)
+                        <br>• 🖼️ Generate gambar dengan DALL-E
+                        <br><br>
+                        Tanyakan apa saja dengan bahasa natural, seperti Anda sedang mengobrol!
+                    </div>
+                </div>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </div>
             </div>
-            <div class="typing-indicator" id="typingIndicator">
-                <span></span>
-                <span></span>
-                <span></span>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <textarea 
+                        id="chatInput" 
+                        class="chat-input" 
+                        placeholder="Tanya apa saja... (contoh: 'Buat landing page coffee shop')"
+                        rows="1"
+                    ></textarea>
+                    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+                </div>
             </div>
         </div>
 
-        <div class="chat-input-container">
-            <div class="chat-input-wrapper">
-                <textarea 
-                    id="chatInput" 
-                    class="chat-input" 
-                    placeholder="Tanya apa saja... (contoh: 'Buat artikel tentang AI', 'Generate gambar sunset', 'Bantu saya coding website')"
-                    rows="1"
-                ></textarea>
-                <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+        <!-- Preview Section -->
+        <div class="preview-container" id="previewContainer">
+            <div class="preview-header">
+                <h3>📱 Preview</h3>
+                <button class="preview-close" onclick="closePreview()">✕ Tutup</button>
+            </div>
+            <div class="preview-content">
+                <iframe id="previewFrame" class="preview-iframe"></iframe>
             </div>
         </div>
     </div>
@@ -468,6 +548,7 @@
         const API_URL = 'https://xendra-ai.vincent-ssb88.workers.dev';
         const CORRECT_PASSWORD = 'Lambada001';
         let conversationHistory = [];
+        let currentHtmlCode = '';
 
         // Auto-resize textarea
         const chatInput = document.getElementById('chatInput');
@@ -491,7 +572,7 @@
             
             if (password === CORRECT_PASSWORD) {
                 document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('chatPage').style.display = 'flex';
+                document.getElementById('mainContainer').classList.add('no-preview');
                 sessionStorage.setItem('xendra_logged_in', 'true');
             } else {
                 document.getElementById('loginError').innerHTML = 
@@ -502,7 +583,7 @@
         // Check if already logged in
         if (sessionStorage.getItem('xendra_logged_in') === 'true') {
             document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('chatPage').style.display = 'flex';
+            document.getElementById('mainContainer').classList.add('no-preview');
         }
 
         // Logout
@@ -519,6 +600,35 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
+        }
+
+        // Show preview
+        function showPreview(htmlCode) {
+            const mainContainer = document.getElementById('mainContainer');
+            const previewContainer = document.getElementById('previewContainer');
+            const previewFrame = document.getElementById('previewFrame');
+            
+            mainContainer.classList.remove('no-preview');
+            mainContainer.classList.add('with-preview');
+            previewContainer.classList.add('active');
+            
+            // Write HTML to iframe
+            const iframeDoc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+            iframeDoc.open();
+            iframeDoc.write(htmlCode);
+            iframeDoc.close();
+            
+            currentHtmlCode = htmlCode;
+        }
+
+        // Close preview
+        function closePreview() {
+            const mainContainer = document.getElementById('mainContainer');
+            const previewContainer = document.getElementById('previewContainer');
+            
+            mainContainer.classList.remove('with-preview');
+            mainContainer.classList.add('no-preview');
+            previewContainer.classList.remove('active');
         }
 
         // Copy code function
@@ -539,16 +649,20 @@
             });
         }
 
+        // Preview HTML code
+        function previewCode(code) {
+            showPreview(code);
+            showToast('Preview ditampilkan!');
+        }
+
         // Download image function
         async function downloadImage(url, filename = 'xendra-ai-image.png') {
             try {
                 showToast('Mengunduh gambar...');
                 
-                // Fetch the image
                 const response = await fetch(url);
                 const blob = await response.blob();
                 
-                // Create download link
                 const blobUrl = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
                 link.href = blobUrl;
@@ -557,7 +671,6 @@
                 link.click();
                 document.body.removeChild(link);
                 
-                // Clean up
                 window.URL.revokeObjectURL(blobUrl);
                 showToast('✓ Gambar berhasil diunduh!');
             } catch (error) {
@@ -566,33 +679,33 @@
             }
         }
 
-        // Send Message
+        // Send Message dengan timeout
         async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
             if (!message) return;
             
-            // Disable input
             input.disabled = true;
             document.getElementById('sendBtn').disabled = true;
             
-            // Add user message
             addMessage(message, 'user');
             input.value = '';
             input.style.height = 'auto';
             
-            // Show typing indicator
             document.getElementById('typingIndicator').style.display = 'block';
             scrollToBottom();
             
-            // Add to conversation history
             conversationHistory.push({
                 role: 'user',
                 content: message
             });
             
             try {
+                // Set timeout 30 detik
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+                
                 const response = await fetch(`${API_URL}/chat`, {
                     method: 'POST',
                     headers: {
@@ -600,12 +713,14 @@
                     },
                     body: JSON.stringify({
                         messages: conversationHistory
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
                 
                 const data = await response.json();
                 
-                // Hide typing indicator
                 document.getElementById('typingIndicator').style.display = 'none';
                 
                 if (data.error) {
@@ -615,10 +730,8 @@
                         addMessage(`❌ Error: ${data.error}`, 'assistant');
                     }
                 } else {
-                    // Add assistant message with streaming effect
                     await addMessageWithStreaming(data.response, 'assistant');
                     
-                    // Add to conversation history
                     conversationHistory.push({
                         role: 'assistant',
                         content: data.response
@@ -627,10 +740,14 @@
                 
             } catch (error) {
                 document.getElementById('typingIndicator').style.display = 'none';
-                addMessage(`❌ Kesalahan koneksi: ${error.message}`, 'assistant');
+                
+                if (error.name === 'AbortError') {
+                    addMessage('❌ Request timeout. Coba lagi atau minta response yang lebih pendek.', 'assistant');
+                } else {
+                    addMessage(`❌ Kesalahan koneksi: ${error.message}`, 'assistant');
+                }
             }
             
-            // Enable input
             input.disabled = false;
             document.getElementById('sendBtn').disabled = false;
             input.focus();
@@ -655,7 +772,7 @@
             messageDiv.appendChild(contentDiv);
             messagesDiv.insertBefore(messageDiv, typingIndicator);
             
-            // Streaming effect - split by sentences for smoother display
+            // Streaming effect
             const chunks = text.split(/([.!?]\s+|\n)/);
             let currentText = '';
             
@@ -666,9 +783,43 @@
                 await new Promise(resolve => setTimeout(resolve, 20));
             }
             
-            // Final render with all formatting
             contentDiv.innerHTML = formatMessage(text);
+            
+            // Auto show preview jika ada HTML code
+            const htmlMatch = text.match(/```html\n([\s\S]+?)```/);
+            if (htmlMatch) {
+                const fullHtml = extractFullHtml(text);
+                if (fullHtml) {
+                    setTimeout(() => showPreview(fullHtml), 500);
+                }
+            }
+            
             scrollToBottom();
+        }
+
+        // Extract full HTML from message
+        function extractFullHtml(text) {
+            const htmlMatch = text.match(/```html\n([\s\S]+?)```/);
+            const cssMatch = text.match(/```css\n([\s\S]+?)```/);
+            const jsMatch = text.match(/```javascript\n([\s\S]+?)```/);
+            
+            if (!htmlMatch) return null;
+            
+            let html = htmlMatch[1];
+            
+            // Inject CSS if exists
+            if (cssMatch) {
+                const css = cssMatch[1];
+                html = html.replace('</head>', `<style>${css}</style></head>`);
+            }
+            
+            // Inject JS if exists
+            if (jsMatch) {
+                const js = jsMatch[1];
+                html = html.replace('</body>', `<script>${js}</script></body>`);
+            }
+            
+            return html;
         }
 
         // Add message (instant)
@@ -696,14 +847,20 @@
 
         // Format message with markdown-like syntax
         function formatMessage(text) {
-            // Detect and format code blocks with copy button
+            // Detect and format code blocks with copy and preview buttons
             text = text.replace(/```(\w+)?\n([\s\S]+?)```/g, function(match, lang, code) {
                 const cleanCode = escapeHtml(code.trim());
                 const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
+                
+                let actions = `<button class="copy-btn" onclick="copyCode(this, \`${cleanCode.replace(/`/g, '\\`')}\`)">📋 Salin</button>`;
+                
+                // Add preview button for HTML
+                if (lang === 'html') {
+                    actions += `<button class="preview-btn" onclick="previewCode(\`${cleanCode.replace(/`/g, '\\`')}\`)">👁️ Preview</button>`;
+                }
+                
                 return `<div class="code-block-wrapper">
-                    <button class="copy-btn" onclick="copyCode(this, \`${cleanCode.replace(/`/g, '\\`')}\`)">
-                        📋 Salin Code
-                    </button>
+                    <div class="code-actions">${actions}</div>
                     <pre><code id="${uniqueId}">${cleanCode}</code></pre>
                 </div>`;
             });
