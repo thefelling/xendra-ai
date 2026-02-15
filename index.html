@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="fav.png" />
     <title>XENDRA AI - Asisten AI Pribadi</title>
     <style>
         * {
@@ -171,13 +170,42 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .message-content pre {
+        /* Code Block dengan tombol Copy */
+        .code-block-wrapper {
+            position: relative;
+            margin: 10px 0;
+        }
+
+        .code-block-wrapper pre {
             background: #2d2d2d;
             color: #f8f8f2;
             padding: 15px;
+            padding-top: 40px;
             border-radius: 8px;
             overflow-x: auto;
-            margin: 10px 0;
+            margin: 0;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #5568d3;
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
         }
 
         .message-content code {
@@ -193,10 +221,39 @@
             padding: 0;
         }
 
-        .message-content img {
+        /* Image dengan tombol Download */
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        .image-wrapper img {
             max-width: 100%;
             border-radius: 10px;
-            margin: 10px 0;
+            display: block;
+        }
+
+        .download-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover {
+            background: rgba(102, 126, 234, 1);
+            transform: scale(1.05);
         }
 
         .typing-indicator {
@@ -292,6 +349,27 @@
             text-align: center;
         }
 
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         /* Scrollbar */
         .chat-messages::-webkit-scrollbar {
             width: 8px;
@@ -316,6 +394,11 @@
 
             .message-content {
                 max-width: 85%;
+            }
+
+            .download-btn {
+                font-size: 12px;
+                padding: 6px 12px;
             }
         }
     </style>
@@ -378,6 +461,9 @@
         </div>
     </div>
 
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
     <script>
         const API_URL = 'https://xendra-ai.vincent-ssb88.workers.dev';
         const CORRECT_PASSWORD = 'Lambada001';
@@ -423,6 +509,61 @@
         function logout() {
             sessionStorage.removeItem('xendra_logged_in');
             location.reload();
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Copy code function
+        function copyCode(button, code) {
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = button.textContent;
+                button.textContent = '✓ Tersalin!';
+                button.classList.add('copied');
+                showToast('Code berhasil disalin!');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                showToast('Gagal menyalin code');
+                console.error('Copy failed:', err);
+            });
+        }
+
+        // Download image function
+        async function downloadImage(url, filename = 'xendra-ai-image.png') {
+            try {
+                showToast('Mengunduh gambar...');
+                
+                // Fetch the image
+                const response = await fetch(url);
+                const blob = await response.blob();
+                
+                // Create download link
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Clean up
+                window.URL.revokeObjectURL(blobUrl);
+                showToast('✓ Gambar berhasil diunduh!');
+            } catch (error) {
+                showToast('❌ Gagal mengunduh gambar');
+                console.error('Download failed:', error);
+            }
         }
 
         // Send Message
@@ -555,9 +696,16 @@
 
         // Format message with markdown-like syntax
         function formatMessage(text) {
-            // Detect and format code blocks
+            // Detect and format code blocks with copy button
             text = text.replace(/```(\w+)?\n([\s\S]+?)```/g, function(match, lang, code) {
-                return `<pre><code>${escapeHtml(code.trim())}</code></pre>`;
+                const cleanCode = escapeHtml(code.trim());
+                const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
+                return `<div class="code-block-wrapper">
+                    <button class="copy-btn" onclick="copyCode(this, \`${cleanCode.replace(/`/g, '\\`')}\`)">
+                        📋 Salin Code
+                    </button>
+                    <pre><code id="${uniqueId}">${cleanCode}</code></pre>
+                </div>`;
             });
             
             // Inline code
@@ -569,9 +717,15 @@
             // Line breaks
             text = text.replace(/\n/g, '<br>');
             
-            // Detect image URLs
-            text = text.replace(/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/gi, 
-                '<img src="$1" alt="Gambar yang Dihasilkan">');
+            // Detect image URLs with download button
+            text = text.replace(/(https?:\/\/[^\s]+\.(jpg|jpeg|png|gif|webp))/gi, function(match) {
+                return `<div class="image-wrapper">
+                    <img src="${match}" alt="Gambar yang Dihasilkan">
+                    <button class="download-btn" onclick="downloadImage('${match}')">
+                        ⬇️ Download
+                    </button>
+                </div>`;
+            });
             
             return text;
         }
