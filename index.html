@@ -404,6 +404,8 @@
             line-height: 1.6;
             word-wrap: break-word;
             font-size: 14px;
+            white-space: pre-wrap;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .message.assistant .message-content {
@@ -619,7 +621,7 @@
                         </div>
                         <div class="response-panel" id="responsePanel">
                             <div class="response-header">
-                                <span>💭 Thinking Process</span>
+                                <span>💭 Processing</span>
                                 <button class="response-close" id="closePanel">✕</button>
                             </div>
                             <div class="response-content" id="responseContent"></div>
@@ -630,7 +632,7 @@
                             <textarea 
                                 class="chat-input" 
                                 id="chatInput" 
-                                placeholder="Type your question... (Press Enter to send, Shift+Enter for new line)" 
+                                placeholder="Ask for article, image, code, or chat... (Press Enter to send, Shift+Enter for new line)" 
                                 autocomplete="off"
                             ></textarea>
                             <div class="input-hint">Press Enter to send • Shift+Enter for new line</div>
@@ -773,20 +775,20 @@
                     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                 }
 
-                // Handle streaming response
+                // Handle streaming response - FIXED VERSION
                 let assistantMessage = '';
                 const messageElement = addMessage('', 'assistant');
                 const contentElement = messageElement.querySelector('.message-content');
+                let charCount = 0;
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
-                let thinkingStep = 0;
 
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
 
-                    const chunk = decoder.decode(value);
+                    const chunk = decoder.decode(value, { stream: true });
                     const lines = chunk.split('\n');
 
                     for (const line of lines) {
@@ -798,36 +800,39 @@
                                 const json = JSON.parse(data);
                                 if (json.content) {
                                     assistantMessage += json.content;
+                                    charCount += json.content.length;
+                                    
+                                    // Update message content - PRESERVE FORMATTING
                                     contentElement.textContent = assistantMessage;
                                     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                                    // Add to thinking panel every 50 chars
-                                    if (assistantMessage.length % 50 === 0) {
-                                        thinkingStep++;
+                                    // Add thinking step every 200 chars
+                                    if (charCount % 200 === 0 && charCount > 0) {
+                                        const stepNumber = Math.floor(charCount / 200);
                                         const thinkingItem = document.createElement('div');
                                         thinkingItem.className = 'thinking-item';
-                                        thinkingItem.textContent = `Step ${thinkingStep}: Processing...`;
+                                        thinkingItem.textContent = `Step ${stepNumber}: Generating...`;
                                         responseContent.appendChild(thinkingItem);
                                         responseContent.scrollTop = responseContent.scrollHeight;
 
-                                        // Mark as complete after delay
+                                        // Mark as complete
                                         setTimeout(() => {
                                             thinkingItem.classList.add('complete');
-                                            thinkingItem.textContent = `Step ${thinkingStep}: ✓ Complete`;
+                                            thinkingItem.textContent = `Step ${stepNumber}: ✓ Complete`;
                                         }, 300);
                                     }
                                 }
                             } catch (e) {
-                                // Skip parse errors
+                                // Skip parse errors silently
                             }
                         }
                     }
                 }
 
-                // Mark final thinking step as complete
+                // Final completion message
                 const finalThinking = document.createElement('div');
                 finalThinking.className = 'thinking-item complete';
-                finalThinking.textContent = '✓ Response Generated';
+                finalThinking.textContent = '✓ Response Generated Successfully';
                 responseContent.appendChild(finalThinking);
 
                 // Add to conversation history
