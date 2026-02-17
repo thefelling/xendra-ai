@@ -766,7 +766,7 @@
                     body: JSON.stringify({
                         message: message,
                         password: currentPassword,
-                        conversationHistory: conversation.messages
+                        conversationHistory: conversation.messages.slice(0, -1)
                     })
                 });
 
@@ -777,11 +777,10 @@
                     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                 }
 
-                // Handle streaming response
+                // Handle streaming response with new format
                 let assistantMessage = '';
-                const messageElement = addMessage('', 'assistant');
-                const contentElement = messageElement.querySelector('.message-content');
-                let charCount = 0;
+                let messageElement = null;
+                let contentElement = null;
 
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
@@ -795,54 +794,76 @@
 
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
-                            const data = line.slice(6);
-                            if (data === '[DONE]') continue;
+                            const data = line.slice(6).trim();
+                            if (!data || data === '[DONE]') continue;
 
                             try {
                                 const json = JSON.parse(data);
-                                if (json.content) {
-                                    assistantMessage += json.content;
-                                    charCount += json.content.length;
-                                    
-                                    // Update message content
-                                    contentElement.textContent = assistantMessage;
-                                    chatMessages.scrollTop = chatMessages.scrollHeight;
 
-                                    // Add thinking step every 200 chars
-                                    if (charCount % 200 === 0 && charCount > 0) {
-                                        const stepNumber = Math.floor(charCount / 200);
+                                // Handle thinking phase
+                                if (json.type === 'thinking') {
+                                    if (json.step === 'start') {
                                         const thinkingItem = document.createElement('div');
                                         thinkingItem.className = 'thinking-item';
-                                        thinkingItem.textContent = `Step ${stepNumber}: Generating...`;
+                                        thinkingItem.innerHTML = '🔍 ' + json.content;
                                         thinkingContent.appendChild(thinkingItem);
-                                        thinkingContent.scrollTop = thinkingContent.scrollHeight;
+                                    } else if (json.step === 'complete') {
+                                        const thinkingItem = document.createElement('div');
+                                        thinkingItem.className = 'thinking-item complete';
+                                        thinkingItem.innerHTML = '✓ ' + json.content;
+                                        thinkingContent.appendChild(thinkingItem);
+                                    } else if (typeof json.step === 'number') {
+                                        const thinkingItem = document.createElement('div');
+                                        thinkingItem.className = 'thinking-item';
+                                        thinkingItem.innerHTML = `💭 Step ${json.step}: ${json.content}`;
+                                        thinkingContent.appendChild(thinkingItem);
+                                        setTimeout(() => thinkingItem.classList.add('complete'), 500);
+                                    }
+                                    thinkingContent.scrollTop = thinkingContent.scrollHeight;
+                                }
 
-                                        // Mark as complete
-                                        setTimeout(() => {
-                                            thinkingItem.classList.add('complete');
-                                            thinkingItem.textContent = `Step ${stepNumber}: ✓ Complete`;
-                                        }, 300);
+                                // Handle answer phase
+                                if (json.type === 'answer') {
+                                    if (json.step === 'start') {
+                                        messageElement = addMessage('', 'assistant');
+                                        contentElement = messageElement.querySelector('.message-content');
+                                    } else if (json.content) {
+                                        assistantMessage += json.content;
+                                        if (contentElement) {
+                                            contentElement.textContent = assistantMessage;
+                                            chatMessages.scrollTop = chatMessages.scrollHeight;
+                                        }
                                     }
                                 }
+
+                                // Handle completion
+                                if (json.type === 'done') {
+                                    const finalThinking = document.createElement('div');
+                                    finalThinking.className = 'thinking-item complete';
+                                    finalThinking.innerHTML = '✅ Response Complete';
+                                    thinkingContent.appendChild(finalThinking);
+                                }
+
+                                // Handle error
+                                if (json.type === 'error') {
+                                    throw new Error(json.content);
+                                }
+
                             } catch (e) {
-                                // Skip parse errors
+                                console.error('Parse error:', e);
                             }
                         }
                     }
                 }
 
-                // Final completion
-                const finalThinking = document.createElement('div');
-                finalThinking.className = 'thinking-item complete';
-                finalThinking.textContent = '✓ Response Generated';
-                thinkingContent.appendChild(finalThinking);
-
                 // Add to conversation history
-                conversation.messages.push({ role: 'assistant', content: assistantMessage });
+                if (assistantMessage) {
+                    conversation.messages.push({ role: 'assistant', content: assistantMessage });
+                }
 
             } catch (error) {
                 console.error('Error:', error);
-                addMessage(`Error: ${error.message}`, 'assistant');
+                addMessage(`❌ Error: ${error.message}`, 'assistant');
                 thinkingContent.innerHTML = `<div class="thinking-item" style="color: #ff006e;">✗ Error: ${error.message}</div>`;
             } finally {
                 isLoading = false;
