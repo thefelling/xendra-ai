@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XENDRA AI</title>
-    <link rel="icon" type="fav.png" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%230f0f1e' width='100' height='100'/><text x='50' y='65' font-size='60' font-weight='bold' text-anchor='middle' fill='%2300d4ff'>⚡</text></svg>">
     <style>
         * {
             margin: 0;
@@ -290,36 +290,23 @@
             gap: 0;
         }
 
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            border-right: 1px solid rgba(0, 212, 255, 0.1);
-        }
-
-        .chat-messages.full-width {
-            border-right: none;
-        }
-
-        .response-panel {
+        /* THINKING PANEL - LEFT SIDE */
+        .thinking-panel {
             width: 0;
             background: #1a1a2e;
-            border-left: 1px solid rgba(0, 212, 255, 0.1);
+            border-right: 1px solid rgba(0, 212, 255, 0.1);
             display: flex;
             flex-direction: column;
             overflow: hidden;
             transition: width 0.3s ease;
         }
 
-        .response-panel.active {
-            width: 40%;
-            min-width: 300px;
+        .thinking-panel.active {
+            width: 35%;
+            min-width: 280px;
         }
 
-        .response-header {
+        .thinking-header {
             padding: 16px;
             border-bottom: 1px solid rgba(0, 212, 255, 0.1);
             font-size: 12px;
@@ -332,7 +319,7 @@
             align-items: center;
         }
 
-        .response-close {
+        .thinking-close {
             background: none;
             border: none;
             color: #666;
@@ -347,11 +334,11 @@
             transition: color 0.3s ease;
         }
 
-        .response-close:hover {
+        .thinking-close:hover {
             color: #00d4ff;
         }
 
-        .response-content {
+        .thinking-content {
             flex: 1;
             overflow-y: auto;
             padding: 16px;
@@ -373,7 +360,7 @@
         @keyframes slideIn {
             from {
                 opacity: 0;
-                transform: translateX(10px);
+                transform: translateX(-10px);
             }
             to {
                 opacity: 1;
@@ -385,6 +372,16 @@
             background: rgba(0, 212, 255, 0.08);
             border-color: rgba(0, 212, 255, 0.3);
             color: #00d4ff;
+        }
+
+        /* CHAT MESSAGES - RIGHT SIDE */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
         .message {
@@ -537,8 +534,8 @@
                 width: 200px;
             }
 
-            .response-panel.active {
-                width: 50%;
+            .thinking-panel.active {
+                width: 40%;
             }
         }
 
@@ -547,12 +544,8 @@
                 display: none;
             }
 
-            .response-panel.active {
+            .thinking-panel.active {
                 width: 100%;
-            }
-
-            .chat-messages {
-                border-right: none;
             }
 
             .chat-input-area {
@@ -614,18 +607,20 @@
                 </div>
                 <div class="chat-main">
                     <div class="chat-content">
-                        <div class="chat-messages full-width" id="chatMessages">
+                        <!-- THINKING PANEL - LEFT -->
+                        <div class="thinking-panel" id="thinkingPanel">
+                            <div class="thinking-header">
+                                <span>💭 Processing</span>
+                                <button class="thinking-close" id="closeThinking">✕</button>
+                            </div>
+                            <div class="thinking-content" id="thinkingContent"></div>
+                        </div>
+                        <!-- CHAT MESSAGES - RIGHT -->
+                        <div class="chat-messages" id="chatMessages">
                             <div class="empty-state">
                                 <div class="empty-state-icon">💬</div>
                                 <div class="empty-state-text">Start a conversation with XENDRA AI</div>
                             </div>
-                        </div>
-                        <div class="response-panel" id="responsePanel">
-                            <div class="response-header">
-                                <span>💭 Processing</span>
-                                <button class="response-close" id="closePanel">✕</button>
-                            </div>
-                            <div class="response-content" id="responseContent"></div>
                         </div>
                     </div>
                     <div class="chat-input-area">
@@ -662,9 +657,9 @@
         const logoutBtn = document.getElementById('logoutBtn');
         const newChatBtn = document.getElementById('newChatBtn');
         const conversationList = document.getElementById('conversationList');
-        const responsePanel = document.getElementById('responsePanel');
-        const responseContent = document.getElementById('responseContent');
-        const closePanel = document.getElementById('closePanel');
+        const thinkingPanel = document.getElementById('thinkingPanel');
+        const thinkingContent = document.getElementById('thinkingContent');
+        const closeThinking = document.getElementById('closeThinking');
 
         // State
         let currentPassword = '';
@@ -687,26 +682,31 @@
             errorMessage.classList.remove('show');
 
             try {
+                console.log('Attempting login with password...');
                 const response = await fetch(`${API_URL}/api/password/verify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
 
+                console.log('Password verify response:', response.status);
+
                 if (!response.ok) {
-                    throw new Error('Invalid password');
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data.message || `Login failed: ${response.status}`);
                 }
 
                 const data = await response.json();
                 if (data.success) {
                     currentPassword = password;
+                    console.log('Login successful!');
                     showChatScreen();
                 } else {
-                    showError('Invalid password');
+                    showError(data.message || 'Invalid password');
                 }
             } catch (error) {
-                showError('Invalid password or connection error');
                 console.error('Login error:', error);
+                showError(error.message || 'Connection error');
             } finally {
                 loginBtn.disabled = false;
                 loginBtn.textContent = 'Access XENDRA AI';
@@ -732,10 +732,9 @@
             clearChat();
         });
 
-        // Close Response Panel
-        closePanel.addEventListener('click', () => {
-            responsePanel.classList.remove('active');
-            chatMessages.classList.add('full-width');
+        // Close Thinking Panel
+        closeThinking.addEventListener('click', () => {
+            thinkingPanel.classList.remove('active');
         });
 
         async function sendMessage() {
@@ -755,12 +754,12 @@
             const conversation = conversations.find(c => c.id === currentConversationId);
             conversation.messages.push({ role: 'user', content: message });
 
-            // Show response panel
-            responsePanel.classList.add('active');
-            chatMessages.classList.remove('full-width');
-            responseContent.innerHTML = '';
+            // Show thinking panel
+            thinkingPanel.classList.add('active');
+            thinkingContent.innerHTML = '';
 
             try {
+                console.log('Sending message with password...');
                 const response = await fetch(`${API_URL}/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -771,12 +770,14 @@
                     })
                 });
 
+                console.log('Chat response status:', response.status);
+
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
                 }
 
-                // Handle streaming response - FIXED VERSION
+                // Handle streaming response
                 let assistantMessage = '';
                 const messageElement = addMessage('', 'assistant');
                 const contentElement = messageElement.querySelector('.message-content');
@@ -803,7 +804,7 @@
                                     assistantMessage += json.content;
                                     charCount += json.content.length;
                                     
-                                    // Update message content - PRESERVE FORMATTING
+                                    // Update message content
                                     contentElement.textContent = assistantMessage;
                                     chatMessages.scrollTop = chatMessages.scrollHeight;
 
@@ -813,8 +814,8 @@
                                         const thinkingItem = document.createElement('div');
                                         thinkingItem.className = 'thinking-item';
                                         thinkingItem.textContent = `Step ${stepNumber}: Generating...`;
-                                        responseContent.appendChild(thinkingItem);
-                                        responseContent.scrollTop = responseContent.scrollHeight;
+                                        thinkingContent.appendChild(thinkingItem);
+                                        thinkingContent.scrollTop = thinkingContent.scrollHeight;
 
                                         // Mark as complete
                                         setTimeout(() => {
@@ -824,25 +825,25 @@
                                     }
                                 }
                             } catch (e) {
-                                // Skip parse errors silently
+                                // Skip parse errors
                             }
                         }
                     }
                 }
 
-                // Final completion message
+                // Final completion
                 const finalThinking = document.createElement('div');
                 finalThinking.className = 'thinking-item complete';
-                finalThinking.textContent = '✓ Response Generated Successfully';
-                responseContent.appendChild(finalThinking);
+                finalThinking.textContent = '✓ Response Generated';
+                thinkingContent.appendChild(finalThinking);
 
                 // Add to conversation history
                 conversation.messages.push({ role: 'assistant', content: assistantMessage });
 
             } catch (error) {
                 console.error('Error:', error);
-                addMessage(`Error: ${error.message}. Please check your password and try again.`, 'assistant');
-                responseContent.innerHTML = `<div class="thinking-item" style="color: #ff006e;">✗ Error: ${error.message}</div>`;
+                addMessage(`Error: ${error.message}`, 'assistant');
+                thinkingContent.innerHTML = `<div class="thinking-item" style="color: #ff006e;">✗ Error: ${error.message}</div>`;
             } finally {
                 isLoading = false;
                 sendBtn.disabled = false;
@@ -878,9 +879,8 @@
                     <div class="empty-state-text">Start a conversation with XENDRA AI</div>
                 </div>
             `;
-            responsePanel.classList.remove('active');
-            chatMessages.classList.add('full-width');
-            responseContent.innerHTML = '';
+            thinkingPanel.classList.remove('active');
+            thinkingContent.innerHTML = '';
         }
 
         function renderConversations() {
