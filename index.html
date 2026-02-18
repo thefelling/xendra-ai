@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XENDRA AI - Advanced Agent System</title>
+    <title>XENDRA AI - Manus Style</title>
     <link rel="icon" type="image/png" href="fav.png" />
     <style>
         * {
@@ -13,7 +13,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #e2e8f0;
             height: 100vh;
@@ -32,7 +32,6 @@
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            transition: all 0.5s ease;
         }
 
         .login-card {
@@ -50,14 +49,12 @@
         .login-logo {
             font-size: 4rem;
             margin-bottom: 1.5rem;
-            display: inline-block;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
+            0%, 100% { transform: scale(1); }
             50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
         }
 
         .login-title {
@@ -69,47 +66,27 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .login-subtitle {
-            color: #94a3b8;
-            margin-bottom: 2rem;
-            font-size: 0.875rem;
+        .login-input, .btn-login {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            font-size: 1rem;
         }
 
         .login-input {
-            width: 100%;
-            padding: 1rem;
             background: rgba(15, 23, 42, 0.5);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            border-radius: 0.75rem;
             color: #fff;
-            margin-bottom: 1.5rem;
-            font-size: 1rem;
             text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .login-input:focus {
-            outline: none;
-            border-color: #00d4ff;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
         }
 
         .btn-login {
-            width: 100%;
-            padding: 1rem;
             background: linear-gradient(135deg, #00d4ff, #0099ff);
             color: #0f172a;
             border: none;
-            border-radius: 0.75rem;
             font-weight: 700;
             cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.4);
         }
 
         /* Main Container */
@@ -122,7 +99,6 @@
         /* Header */
         .header {
             background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(10px);
             border-bottom: 1px solid rgba(148, 163, 184, 0.1);
             padding: 1rem 2rem;
             display: flex;
@@ -131,9 +107,6 @@
         }
 
         .header-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
             font-size: 1.5rem;
             font-weight: 700;
             background: linear-gradient(135deg, #00d4ff, #0099ff);
@@ -141,22 +114,16 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .header-title::before {
-            content: "⚡";
-        }
-
-        .btn-header {
+        .btn-logout {
             padding: 0.5rem 1rem;
             border: 1px solid rgba(148, 163, 184, 0.2);
             background: rgba(30, 41, 59, 0.5);
             color: #e2e8f0;
             border-radius: 0.5rem;
             cursor: pointer;
-            font-size: 0.875rem;
-            transition: all 0.3s ease;
         }
 
-        /* Main Content Layout */
+        /* Main Content */
         .main-content {
             display: flex;
             flex: 1;
@@ -171,6 +138,7 @@
             display: flex;
             flex-direction: column;
             padding: 1.5rem;
+            overflow-y: auto;
         }
 
         .btn-new-chat {
@@ -183,51 +151,41 @@
             font-weight: 700;
             cursor: pointer;
             margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
         }
 
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .chat-item {
-            padding: 0.875rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .chat-item:hover {
-            background: rgba(148, 163, 184, 0.1);
-        }
-
-        .chat-item.active {
-            background: rgba(0, 212, 255, 0.1);
-            border-color: rgba(0, 212, 255, 0.3);
-            color: #00d4ff;
-        }
-
-        /* Split View Area */
+        /* Chat Area */
         .chat-area {
             flex: 1;
             display: flex;
+            flex-direction: column;
             overflow: hidden;
         }
 
-        /* Planning Panel (Left) */
+        /* Split View Container */
+        .split-container {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .split-container.active {
+            display: flex;
+        }
+
         .planning-panel {
             width: 40%;
             background: rgba(30, 41, 59, 0.3);
             border-right: 1px solid rgba(148, 163, 184, 0.1);
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .response-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(15, 23, 42, 0.2);
             overflow-y: auto;
         }
 
@@ -240,90 +198,158 @@
             z-index: 10;
         }
 
-        .panel-header h3 {
-            font-size: 1rem;
+        /* Planning Section (Above Chat) */
+        .planning-section {
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .planning-section.hidden {
+            display: none;
+        }
+
+        .planning-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #00d4ff;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .planning-content {
+        .phase-item {
+            background: rgba(148, 163, 184, 0.05);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .phase-item:hover {
+            background: rgba(148, 163, 184, 0.1);
+            border-color: rgba(0, 212, 255, 0.4);
+            transform: translateX(5px);
+        }
+
+        .phase-item.active {
+            background: rgba(0, 212, 255, 0.08);
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
+        }
+
+        .phase-title {
+            font-weight: 700;
+            color: #f1f5f9;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .phase-desc {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        /* Chat History */
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
             gap: 1rem;
         }
 
-        .phase-card {
-            background: rgba(148, 163, 184, 0.05);
-            border: 1px solid rgba(148, 163, 184, 0.15);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .phase-card:hover {
-            background: rgba(148, 163, 184, 0.1);
-            border-color: rgba(0, 212, 255, 0.4);
-            transform: translateX(5px);
-        }
-
-        .phase-card.active {
-            background: rgba(0, 212, 255, 0.08);
-            border-color: #00d4ff;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.15);
-        }
-
-        .phase-num {
-            font-size: 0.7rem;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.25rem;
-        }
-
-        .phase-title {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #f1f5f9;
-        }
-
-        .phase-desc {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            line-height: 1.5;
-        }
-
-        .phase-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.2rem 0.5rem;
-            background: rgba(34, 197, 94, 0.1);
-            color: #4ade80;
-            border-radius: 0.5rem;
-            font-size: 0.7rem;
-            margin-top: 0.75rem;
-        }
-
-        .phase-badge.pending {
-            background: rgba(59, 130, 246, 0.1);
-            color: #60a5fa;
-        }
-
-        /* Response Panel (Right) */
-        .response-panel {
-            flex: 1;
+        .message {
             display: flex;
-            flex-direction: column;
-            background: rgba(15, 23, 42, 0.2);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
         }
 
-        .response-content {
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem;
+            border-radius: 1rem;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            color: #0f172a;
+        }
+
+        .message.assistant .message-content {
+            background: rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #e2e8f0;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.8);
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .input-box {
+            display: flex;
+            gap: 1rem;
+            background: rgba(148, 163, 184, 0.05);
+            padding: 0.75rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            align-items: flex-end;
+        }
+
+        textarea {
             flex: 1;
-            overflow-y: auto;
+            background: transparent;
+            border: none;
+            color: #fff;
+            padding: 0.5rem;
+            font-family: inherit;
+            font-size: 1rem;
+            resize: none;
+            max-height: 150px;
+            min-height: 40px;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #00d4ff, #0099ff);
+            color: #0f172a;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            height: 44px;
+        }
+
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Response Content */
+        .response-content {
             padding: 2rem;
+            overflow-y: auto;
         }
 
         .response-box {
@@ -338,68 +364,7 @@
         .response-image {
             max-width: 100%;
             border-radius: 1rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Input Area */
-        .input-container {
-            padding: 2rem;
-            background: rgba(15, 23, 42, 0.8);
-            border-top: 1px solid rgba(148, 163, 184, 0.1);
-        }
-
-        .input-box {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            gap: 1rem;
-            background: rgba(148, 163, 184, 0.05);
-            padding: 0.75rem;
-            border-radius: 1rem;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            transition: all 0.3s ease;
-            align-items: flex-end;
-        }
-
-        .input-box:focus-within {
-            border-color: #00d4ff;
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
-        }
-
-        textarea {
-            flex: 1;
-            background: transparent;
-            border: none;
-            color: #fff;
-            padding: 0.5rem;
-            font-family: inherit;
-            font-size: 1rem;
-            resize: none;
-            max-height: 200px;
-            min-height: 40px;
-            overflow-y: auto;
-        }
-
-        textarea:focus { outline: none; }
-
-        .btn-send {
-            background: linear-gradient(135deg, #00d4ff, #0099ff);
-            color: #0f172a;
-            border: none;
-            border-radius: 0.75rem;
-            padding: 0.75rem 1.5rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            height: 44px;
-        }
-
-        .btn-send:hover { transform: scale(1.05); }
-
-        .btn-send:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
+            margin-bottom: 1rem;
         }
 
         /* Loading */
@@ -410,16 +375,19 @@
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+            animation: spin 1s linear infinite;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .chat-area { flex-direction: column; }
-            .planning-panel, .response-panel { width: 100%; height: 50%; }
             .sidebar { display: none; }
+            .split-container { flex-direction: column; }
+            .planning-panel { width: 100%; height: 40%; }
+            .response-panel { height: 60%; }
         }
     </style>
 </head>
@@ -430,60 +398,61 @@
         <div class="login-card">
             <div class="login-logo">⚡</div>
             <h1 class="login-title">XENDRA AI</h1>
-            <p class="login-subtitle">Masukkan password untuk memulai sistem agen</p>
-            <input type="password" id="passwordInput" class="login-input" placeholder="Password Access">
+            <p style="color: #94a3b8; margin-bottom: 2rem;">Masukkan password untuk memulai</p>
+            <input type="password" id="passwordInput" class="login-input" placeholder="Password">
             <button class="btn-login" id="loginBtn">ACCESS SYSTEM</button>
-            <p id="loginError" style="color: #fca5a5; font-size: 0.8rem; margin-top: 1rem; display: none;">Password salah, silakan coba lagi.</p>
         </div>
     </div>
 
     <!-- Main Container -->
     <div class="container" id="mainContainer">
         <div class="header">
-            <div class="header-title">XENDRA AI</div>
-            <button class="btn-header" onclick="logout()">Logout</button>
+            <div class="header-title">⚡ XENDRA AI</div>
+            <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
 
         <div class="main-content">
             <div class="sidebar">
                 <button class="btn-new-chat" onclick="resetChat()">+ NEW CHAT</button>
-                <div class="chat-list">
-                    <div class="chat-item active">Current Conversation</div>
-                </div>
+                <div id="chatHistory" style="flex: 1;"></div>
             </div>
 
             <div class="chat-area">
-                <div class="planning-panel">
-                    <div class="panel-header">
-                        <h3>📋 Planning & Phases</h3>
-                    </div>
-                    <div class="planning-content" id="planningContent">
-                        <div style="color: #64748b; text-align: center; margin-top: 2rem;">
-                            Belum ada rencana. Ajukan pertanyaan!
+                <!-- Split View (Hidden by default) -->
+                <div class="split-container" id="splitContainer">
+                    <div class="planning-panel">
+                        <div class="panel-header">
+                            <h3>📋 Planning & Phases</h3>
                         </div>
+                        <div id="planningContent" style="padding: 1.5rem; flex: 1; overflow-y: auto;"></div>
+                    </div>
+                    <div class="response-panel">
+                        <div class="panel-header">
+                            <h3>💬 Result View</h3>
+                        </div>
+                        <div id="responseContent" style="padding: 2rem; flex: 1; overflow-y: auto;"></div>
                     </div>
                 </div>
 
-                <div class="response-panel">
-                    <div class="panel-header">
-                        <h3>💬 Result View</h3>
+                <!-- Normal Chat View -->
+                <div id="normalChatView" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                    <!-- Planning Section (Above Chat) -->
+                    <div class="planning-section hidden" id="planningSection">
+                        <div class="planning-title">📋 Rencana Kerja AI</div>
+                        <div id="planningList"></div>
                     </div>
-                    <div class="response-content" id="responseContent">
-                        <div style="color: #64748b; text-align: center; margin-top: 2rem;">
-                            Hasil pekerjaan akan muncul di sini.
+
+                    <!-- Chat History -->
+                    <div class="chat-history" id="chatMessages"></div>
+
+                    <!-- Input Area -->
+                    <div class="input-area">
+                        <div class="input-box">
+                            <textarea id="chatInput" placeholder="Ketik pertanyaan... (Enter: Kirim, Shift+Enter: Baris Baru)"></textarea>
+                            <button class="btn-send" id="sendBtn">SEND</button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="input-container">
-            <div class="input-box">
-                <textarea id="chatInput" placeholder="Ketik permintaan Anda... (Enter: Kirim, Shift+Enter: Baris Baru)" rows="1"></textarea>
-                <button class="btn-send" id="sendBtn">SEND</button>
-            </div>
-            <div style="text-align: center; font-size: 0.7rem; color: #64748b; margin-top: 0.5rem;">
-                Enter to Send • Shift+Enter for New Line
             </div>
         </div>
     </div>
@@ -493,110 +462,75 @@
         let userPassword = '';
         let currentPlan = null;
         let isProcessing = false;
+        let chatMessages = [];
 
-        // Login Logic
-        const loginBtn = document.getElementById('loginBtn');
-        const passwordInput = document.getElementById('passwordInput');
-        const loginScreen = document.getElementById('loginScreen');
-        const mainContainer = document.getElementById('mainContainer');
-
-        loginBtn.addEventListener('click', () => {
-            const pass = passwordInput.value;
+        // Login
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const pass = document.getElementById('passwordInput').value;
             if (pass) {
                 userPassword = pass;
-                loginScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loginScreen.style.display = 'none';
-                    mainContainer.style.display = 'flex';
-                }, 500);
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainContainer').style.display = 'flex';
+                document.getElementById('chatInput').focus();
             }
         });
 
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') loginBtn.click();
+        document.getElementById('passwordInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('loginBtn').click();
         });
 
-        // Chat Logic
+        // Send Message
         const sendBtn = document.getElementById('sendBtn');
         const chatInput = document.getElementById('chatInput');
-        const planningContent = document.getElementById('planningContent');
-        const responseContent = document.getElementById('responseContent');
 
-        // Handle Send Message
         async function sendMessage() {
             const msg = chatInput.value.trim();
-            
-            // Validasi: pesan tidak boleh kosong dan tidak sedang memproses
             if (!msg || isProcessing) return;
 
-            // Set flag processing
             isProcessing = true;
-            
-            // Disable input dan button
             sendBtn.disabled = true;
-            chatInput.disabled = true;
 
-            // Simpan pesan sebelum mengosongkan
-            const messageToSend = msg;
+            // Add user message to chat
+            chatMessages.push({ role: 'user', content: msg });
+            displayMessage(msg, 'user');
 
-            // Kosongkan textarea dan reset tingginya
+            // Clear input
             chatInput.value = '';
             chatInput.style.height = '40px';
 
-            // Tampilkan loading state
-            sendBtn.innerHTML = '<div class="loading-spinner"></div>';
-            planningContent.innerHTML = '<div style="text-align:center; padding:2rem;">⚡ AI sedang merencanakan tugas...</div>';
-            responseContent.innerHTML = '<div style="text-align:center; padding:2rem;"><div class="loading-spinner" style="margin:0 auto;"></div><p style="margin-top:1rem;">Memproses permintaan Anda...</p></div>';
+            // Show planning section
+            document.getElementById('planningSection').classList.remove('hidden');
+            document.getElementById('planningList').innerHTML = '<div style="text-align:center;"><div class="loading-spinner" style="margin:0 auto;"></div><p style="margin-top:0.5rem; font-size:0.9rem;">AI sedang merencanakan tugas...</p></div>';
 
             try {
-                // Kirim request ke backend
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        message: messageToSend, 
-                        password: userPassword 
-                    })
+                    body: JSON.stringify({ message: msg, password: userPassword })
                 });
 
                 const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
+                if (data.error) throw new Error(data.error);
 
-                // Update plan dan response
                 currentPlan = data.plan;
-                renderPlan(data.plan);
+                renderPlanningPhases(data.plan);
                 
-                // Tampilkan hasil akhir
-                showResult(data.response);
+                // Add assistant response to chat
+                chatMessages.push({ role: 'assistant', content: data.response });
+                displayMessage(data.response, 'assistant');
 
             } catch (err) {
                 console.error('Error:', err);
-                responseContent.innerHTML = `
-                    <div class="response-box" style="color: #fca5a5;">
-                        <strong>❌ Error:</strong> ${err.message}
-                    </div>
-                `;
-                
-                if (err.message.includes('Invalid password')) {
-                    setTimeout(() => logout(), 2000);
-                }
+                displayMessage('❌ Error: ' + err.message, 'assistant');
             } finally {
-                // Reset state
                 isProcessing = false;
                 sendBtn.disabled = false;
-                chatInput.disabled = false;
-                sendBtn.innerHTML = 'SEND';
                 chatInput.focus();
             }
         }
 
-        // Event listeners
         sendBtn.addEventListener('click', sendMessage);
 
-        // Enter to Send, Shift+Enter for New Line
         chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -604,86 +538,86 @@
             }
         });
 
-        function renderPlan(plan) {
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+
+        function displayMessage(content, role) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            let displayContent = content;
+            if (role === 'assistant' && content.startsWith('http')) {
+                displayContent = `<img src="${content}" class="response-image" style="max-width: 100%; border-radius: 1rem;">`;
+            } else if (role === 'assistant') {
+                displayContent = content.substring(0, 200) + (content.length > 200 ? '...' : '');
+            }
+
+            messageDiv.innerHTML = `<div class="message-content">${displayContent}</div>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function renderPlanningPhases(plan) {
+            const planningList = document.getElementById('planningList');
             if (!plan || !plan.phases) {
-                planningContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Tidak ada rencana tersedia.</div>';
+                planningList.innerHTML = '<p style="color: #64748b;">Tidak ada rencana.</p>';
                 return;
             }
 
-            planningContent.innerHTML = plan.phases.map((p, i) => `
-                <div class="phase-card" onclick="showPhaseResult(${i})">
-                    <div class="phase-num">PHASE ${i+1} / ${plan.phases.length}</div>
-                    <div class="phase-title">${p.title}</div>
+            planningList.innerHTML = plan.phases.map((p, i) => `
+                <div class="phase-item" onclick="clickPhase(${i})">
+                    <div class="phase-title">Phase ${i+1}: ${p.title}</div>
                     <div class="phase-desc">${p.description}</div>
-                    <div class="phase-badge ${p.status === 'completed' ? '' : 'pending'}">
-                        ${p.status === 'completed' ? '✓ Completed' : '⏳ Pending'}
-                    </div>
                 </div>
             `).join('');
         }
 
-        function showPhaseResult(index) {
-            if (!currentPlan || !currentPlan.phases[index]) return;
+        function clickPhase(index) {
+            if (!currentPlan) return;
             
+            // Activate split view
+            document.getElementById('normalChatView').style.display = 'none';
+            document.getElementById('splitContainer').classList.add('active');
+
+            // Render planning panel
+            const planningContent = document.getElementById('planningContent');
+            planningContent.innerHTML = currentPlan.phases.map((p, i) => `
+                <div class="phase-item ${i === index ? 'active' : ''}" onclick="clickPhase(${i})">
+                    <div class="phase-title">Phase ${i+1}: ${p.title}</div>
+                    <div class="phase-desc">${p.description}</div>
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
+                        ${p.detailedSteps ? p.detailedSteps.map(s => `<p>• ${s}</p>`).join('') : ''}
+                    </div>
+                </div>
+            `).join('');
+
+            // Render response
+            const responseContent = document.getElementById('responseContent');
             const phase = currentPlan.phases[index];
-            document.querySelectorAll('.phase-card').forEach((c, i) => {
-                c.classList.toggle('active', i === index);
-            });
-            showResult(phase.result || phase.description);
-        }
-
-        function showResult(content) {
-            if (!content) {
-                responseContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Tidak ada hasil tersedia.</div>';
-                return;
-            }
-
-            // Check if it's an image URL
-            if (typeof content === 'string' && (content.startsWith('http://') || content.startsWith('https://'))) {
-                responseContent.innerHTML = `
-                    <div class="response-box">
-                        <img src="${content}" alt="Generated Image" class="response-image">
-                        <p style="margin-top:1rem; font-size:0.8rem; color:#64748b;">✓ Image generated by DALL-E 3</p>
-                    </div>`;
-            } else {
-                // Format text/code response
-                const formatted = String(content)
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/\n/g, '<br>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/__(.*?)__/g, '<u>$1</u>');
-                
-                responseContent.innerHTML = `<div class="response-box">${formatted}</div>`;
+            if (phase.result) {
+                if (phase.result.startsWith('http')) {
+                    responseContent.innerHTML = `<img src="${phase.result}" class="response-image">`;
+                } else {
+                    responseContent.innerHTML = `<div class="response-box">${phase.result}</div>`;
+                }
             }
         }
 
         function resetChat() {
             if (isProcessing) return;
-            
-            currentPlan = null;
-            planningContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Belum ada rencana. Ajukan pertanyaan!</div>';
-            responseContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Hasil pekerjaan akan muncul di sini.</div>';
-            chatInput.value = '';
-            chatInput.style.height = '40px';
-            chatInput.focus();
+            chatMessages = [];
+            document.getElementById('chatMessages').innerHTML = '';
+            document.getElementById('planningSection').classList.add('hidden');
+            document.getElementById('chatInput').value = '';
+            document.getElementById('chatInput').focus();
         }
 
         function logout() {
             location.reload();
         }
-
-        // Auto-grow textarea
-        chatInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
-        });
-
-        // Focus input on load
-        window.addEventListener('load', () => {
-            chatInput.focus();
-        });
     </script>
 </body>
 </html>
