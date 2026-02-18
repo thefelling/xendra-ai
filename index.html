@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/png" href="fav.png" />
     <title>XENDRA AI - Advanced Agent System</title>
-    
     <style>
         * {
             margin: 0;
@@ -336,6 +334,12 @@
             color: #cbd5e1;
         }
 
+        .response-image {
+            max-width: 100%;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
         /* Input Area */
         .input-container {
             padding: 2rem;
@@ -487,6 +491,7 @@
         const API_URL = 'https://xendra-ai.vincent-ssb88.workers.dev';
         let userPassword = '';
         let currentPlan = null;
+        let isProcessing = false;
 
         // Login Logic
         const loginBtn = document.getElementById('loginBtn');
@@ -519,56 +524,94 @@
         // Handle Send Message
         async function sendMessage() {
             const msg = chatInput.value.trim();
-            if (!msg || sendBtn.disabled) return;
+            
+            // Validasi: pesan tidak boleh kosong dan tidak sedang memproses
+            if (!msg || isProcessing) return;
 
-            // Reset textarea height
+            // Set flag processing
+            isProcessing = true;
+            
+            // Disable input dan button
+            sendBtn.disabled = true;
+            chatInput.disabled = true;
+
+            // Simpan pesan sebelum mengosongkan
+            const messageToSend = msg;
+
+            // Kosongkan textarea dan reset tingginya
+            chatInput.value = '';
             chatInput.style.height = '40px';
 
-            // Loading state
-            sendBtn.disabled = true;
+            // Tampilkan loading state
             sendBtn.innerHTML = '<div class="loading-spinner"></div>';
             planningContent.innerHTML = '<div style="text-align:center; padding:2rem;">⚡ AI sedang merencanakan tugas...</div>';
+            responseContent.innerHTML = '<div style="text-align:center; padding:2rem;"><div class="loading-spinner" style="margin:0 auto;"></div><p style="margin-top:1rem;">Memproses permintaan Anda...</p></div>';
 
             try {
+                // Kirim request ke backend
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: msg, password: userPassword })
+                    body: JSON.stringify({ 
+                        message: messageToSend, 
+                        password: userPassword 
+                    })
                 });
 
                 const data = await response.json();
-                if (data.error) throw new Error(data.error);
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
 
+                // Update plan dan response
                 currentPlan = data.plan;
                 renderPlan(data.plan);
-                chatInput.value = '';
                 
-                // Show final result automatically
+                // Tampilkan hasil akhir
                 showResult(data.response);
 
             } catch (err) {
-                alert('Error: ' + err.message);
-                if (err.message.includes('Invalid password')) logout();
+                console.error('Error:', err);
+                responseContent.innerHTML = `
+                    <div class="response-box" style="color: #fca5a5;">
+                        <strong>❌ Error:</strong> ${err.message}
+                    </div>
+                `;
+                
+                if (err.message.includes('Invalid password')) {
+                    setTimeout(() => logout(), 2000);
+                }
             } finally {
+                // Reset state
+                isProcessing = false;
                 sendBtn.disabled = false;
+                chatInput.disabled = false;
                 sendBtn.innerHTML = 'SEND';
+                chatInput.focus();
             }
         }
 
+        // Event listeners
         sendBtn.addEventListener('click', sendMessage);
 
         // Enter to Send, Shift+Enter for New Line
         chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Prevent new line
+                e.preventDefault();
                 sendMessage();
             }
         });
 
         function renderPlan(plan) {
+            if (!plan || !plan.phases) {
+                planningContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Tidak ada rencana tersedia.</div>';
+                return;
+            }
+
             planningContent.innerHTML = plan.phases.map((p, i) => `
                 <div class="phase-card" onclick="showPhaseResult(${i})">
-                    <div class="phase-num">PHASE ${i+1}</div>
+                    <div class="phase-num">PHASE ${i+1} / ${plan.phases.length}</div>
                     <div class="phase-title">${p.title}</div>
                     <div class="phase-desc">${p.description}</div>
                     <div class="phase-badge ${p.status === 'completed' ? '' : 'pending'}">
@@ -579,6 +622,8 @@
         }
 
         function showPhaseResult(index) {
+            if (!currentPlan || !currentPlan.phases[index]) return;
+            
             const phase = currentPlan.phases[index];
             document.querySelectorAll('.phase-card').forEach((c, i) => {
                 c.classList.toggle('active', i === index);
@@ -587,28 +632,41 @@
         }
 
         function showResult(content) {
-            if (content.startsWith('http')) {
+            if (!content) {
+                responseContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Tidak ada hasil tersedia.</div>';
+                return;
+            }
+
+            // Check if it's an image URL
+            if (typeof content === 'string' && (content.startsWith('http://') || content.startsWith('https://'))) {
                 responseContent.innerHTML = `
                     <div class="response-box">
-                        <img src="${content}" style="width:100%; border-radius:1rem; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
-                        <p style="margin-top:1rem; font-size:0.8rem; color:#64748b;">Image generated by DALL-E 3</p>
+                        <img src="${content}" alt="Generated Image" class="response-image">
+                        <p style="margin-top:1rem; font-size:0.8rem; color:#64748b;">✓ Image generated by DALL-E 3</p>
                     </div>`;
             } else {
-                // Simple formatting for text/code
-                const formatted = content
-                    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                // Format text/code response
+                const formatted = String(content)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
                     .replace(/\n/g, '<br>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/__(.*?)__/g, '<u>$1</u>');
                 
                 responseContent.innerHTML = `<div class="response-box">${formatted}</div>`;
             }
         }
 
         function resetChat() {
+            if (isProcessing) return;
+            
+            currentPlan = null;
             planningContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Belum ada rencana. Ajukan pertanyaan!</div>';
             responseContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Hasil pekerjaan akan muncul di sini.</div>';
             chatInput.value = '';
             chatInput.style.height = '40px';
+            chatInput.focus();
         }
 
         function logout() {
@@ -619,6 +677,11 @@
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            chatInput.focus();
         });
     </script>
 </body>
