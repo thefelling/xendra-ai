@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XENDRA AI - Manus Style</title>
+    <title>XENDRA AI - Manus Style v6</title>
     <link rel="icon" type="image/png" href="fav.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -283,6 +285,7 @@
             padding: 1rem;
             border-radius: 1rem;
             word-wrap: break-word;
+            line-height: 1.6;
         }
 
         .message.user .message-content {
@@ -367,6 +370,24 @@
             margin-bottom: 1rem;
         }
 
+        /* Code Highlighting */
+        pre {
+            background: #1e293b !important;
+            border-radius: 0.75rem !important;
+            padding: 1.5rem !important;
+            overflow-x: auto !important;
+            margin: 1rem 0 !important;
+        }
+
+        code {
+            color: #e2e8f0 !important;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+        }
+
+        .hljs {
+            background: transparent !important;
+        }
+
         /* Loading */
         .loading-spinner {
             display: inline-block;
@@ -407,7 +428,7 @@
     <!-- Main Container -->
     <div class="container" id="mainContainer">
         <div class="header">
-            <div class="header-title">⚡ XENDRA AI</div>
+            <div class="header-title">⚡ XENDRA AI v6</div>
             <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
 
@@ -544,20 +565,36 @@
         });
 
         function displayMessage(content, role) {
-            const chatMessages = document.getElementById('chatMessages');
+            const chatMessagesDiv = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${role}`;
             
             let displayContent = content;
-            if (role === 'assistant' && content.startsWith('http')) {
-                displayContent = `<img src="${content}" class="response-image" style="max-width: 100%; border-radius: 1rem;">`;
-            } else if (role === 'assistant') {
-                displayContent = content.substring(0, 200) + (content.length > 200 ? '...' : '');
+            if (role === 'assistant') {
+                if (content.startsWith('http') && (content.includes('.jpg') || content.includes('.png') || content.includes('pollinations'))) {
+                    displayContent = `<img src="${content}" class="response-image" style="max-width: 100%; border-radius: 1rem;">`;
+                } else if (content.includes('<h1>') || content.includes('<h2>')) {
+                    // Artikel - tampilkan preview
+                    const preview = content.substring(0, 300) + '...';
+                    displayContent = preview;
+                } else if (content.includes('<pre>') || content.includes('<!DOCTYPE')) {
+                    // Kode - tampilkan dengan syntax highlighting
+                    displayContent = content;
+                } else {
+                    // Chat biasa
+                    displayContent = content.substring(0, 200) + (content.length > 200 ? '...' : '');
+                }
             }
 
             messageDiv.innerHTML = `<div class="message-content">${displayContent}</div>`;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatMessagesDiv.appendChild(messageDiv);
+            
+            // Highlight code jika ada
+            messageDiv.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+            
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         }
 
         function renderPlanningPhases(plan) {
@@ -602,6 +639,10 @@
                     responseContent.innerHTML = `<img src="${phase.result}" class="response-image">`;
                 } else {
                     responseContent.innerHTML = `<div class="response-box">${phase.result}</div>`;
+                    // Highlight code jika ada
+                    responseContent.querySelectorAll('pre code').forEach(block => {
+                        hljs.highlightElement(block);
+                    });
                 }
             }
         }
