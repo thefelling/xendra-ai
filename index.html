@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="fav.png" />
     <title>XENDRA AI - Advanced Agent System</title>
+    <
     <style>
         * {
             margin: 0;
@@ -351,6 +353,7 @@
             border-radius: 1rem;
             border: 1px solid rgba(148, 163, 184, 0.2);
             transition: all 0.3s ease;
+            align-items: flex-end;
         }
 
         .input-box:focus-within {
@@ -367,7 +370,9 @@
             font-family: inherit;
             font-size: 1rem;
             resize: none;
-            max-height: 150px;
+            max-height: 200px;
+            min-height: 40px;
+            overflow-y: auto;
         }
 
         textarea:focus { outline: none; }
@@ -377,13 +382,20 @@
             color: #0f172a;
             border: none;
             border-radius: 0.75rem;
-            padding: 0 1.5rem;
+            padding: 0.75rem 1.5rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
+            height: 44px;
         }
 
         .btn-send:hover { transform: scale(1.05); }
+
+        .btn-send:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
 
         /* Loading */
         .loading-spinner {
@@ -462,8 +474,11 @@
 
         <div class="input-container">
             <div class="input-box">
-                <textarea id="chatInput" placeholder="Ketik permintaan Anda... (Gambar, Artikel SEO, atau Landing Page)" rows="1"></textarea>
+                <textarea id="chatInput" placeholder="Ketik permintaan Anda... (Enter: Kirim, Shift+Enter: Baris Baru)" rows="1"></textarea>
                 <button class="btn-send" id="sendBtn">SEND</button>
+            </div>
+            <div style="text-align: center; font-size: 0.7rem; color: #64748b; margin-top: 0.5rem;">
+                Enter to Send • Shift+Enter for New Line
             </div>
         </div>
     </div>
@@ -501,9 +516,13 @@
         const planningContent = document.getElementById('planningContent');
         const responseContent = document.getElementById('responseContent');
 
-        sendBtn.addEventListener('click', async () => {
+        // Handle Send Message
+        async function sendMessage() {
             const msg = chatInput.value.trim();
-            if (!msg) return;
+            if (!msg || sendBtn.disabled) return;
+
+            // Reset textarea height
+            chatInput.style.height = '40px';
 
             // Loading state
             sendBtn.disabled = true;
@@ -533,6 +552,16 @@
             } finally {
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = 'SEND';
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Enter to Send, Shift+Enter for New Line
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent new line
+                sendMessage();
             }
         });
 
@@ -579,6 +608,7 @@
             planningContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Belum ada rencana. Ajukan pertanyaan!</div>';
             responseContent.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 2rem;">Hasil pekerjaan akan muncul di sini.</div>';
             chatInput.value = '';
+            chatInput.style.height = '40px';
         }
 
         function logout() {
@@ -588,7 +618,7 @@
         // Auto-grow textarea
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
         });
     </script>
 </body>
