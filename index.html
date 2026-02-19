@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XENDRA AI - Manus Style v6</title>
-    <link rel="icon" type="image/png" href="fav.png" />
+    <title>XENDRA AI - Manus Style v7</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
@@ -163,43 +162,6 @@
             overflow: hidden;
         }
 
-        /* Split View Container */
-        .split-container {
-            display: none;
-            flex: 1;
-            overflow: hidden;
-        }
-
-        .split-container.active {
-            display: flex;
-        }
-
-        .planning-panel {
-            width: 40%;
-            background: rgba(30, 41, 59, 0.3);
-            border-right: 1px solid rgba(148, 163, 184, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-
-        .response-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: rgba(15, 23, 42, 0.2);
-            overflow-y: auto;
-        }
-
-        .panel-header {
-            padding: 1.5rem;
-            background: rgba(15, 23, 42, 0.4);
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
         /* Planning Section (Above Chat) */
         .planning-section {
             background: rgba(30, 41, 59, 0.3);
@@ -241,12 +203,6 @@
             transform: translateX(5px);
         }
 
-        .phase-item.active {
-            background: rgba(0, 212, 255, 0.08);
-            border-color: #00d4ff;
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.15);
-        }
-
         .phase-title {
             font-weight: 700;
             color: #f1f5f9;
@@ -281,11 +237,13 @@
         }
 
         .message-content {
-            max-width: 70%;
+            max-width: 80%;
             padding: 1rem;
             border-radius: 1rem;
             word-wrap: break-word;
             line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
         }
 
         .message.user .message-content {
@@ -349,27 +307,6 @@
             cursor: not-allowed;
         }
 
-        /* Response Content */
-        .response-content {
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        .response-box {
-            background: rgba(30, 41, 59, 0.5);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            line-height: 1.8;
-            color: #cbd5e1;
-        }
-
-        .response-image {
-            max-width: 100%;
-            border-radius: 1rem;
-            margin-bottom: 1rem;
-        }
-
         /* Code Highlighting */
         pre {
             background: #1e293b !important;
@@ -377,6 +314,7 @@
             padding: 1.5rem !important;
             overflow-x: auto !important;
             margin: 1rem 0 !important;
+            max-width: 100%;
         }
 
         code {
@@ -406,9 +344,6 @@
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar { display: none; }
-            .split-container { flex-direction: column; }
-            .planning-panel { width: 100%; height: 40%; }
-            .response-panel { height: 60%; }
         }
     </style>
 </head>
@@ -428,7 +363,7 @@
     <!-- Main Container -->
     <div class="container" id="mainContainer">
         <div class="header">
-            <div class="header-title">⚡ XENDRA AI v6</div>
+            <div class="header-title">⚡ XENDRA AI v7</div>
             <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
 
@@ -439,39 +374,20 @@
             </div>
 
             <div class="chat-area">
-                <!-- Split View (Hidden by default) -->
-                <div class="split-container" id="splitContainer">
-                    <div class="planning-panel">
-                        <div class="panel-header">
-                            <h3>📋 Planning & Phases</h3>
-                        </div>
-                        <div id="planningContent" style="padding: 1.5rem; flex: 1; overflow-y: auto;"></div>
-                    </div>
-                    <div class="response-panel">
-                        <div class="panel-header">
-                            <h3>💬 Result View</h3>
-                        </div>
-                        <div id="responseContent" style="padding: 2rem; flex: 1; overflow-y: auto;"></div>
-                    </div>
+                <!-- Planning Section (Above Chat) -->
+                <div class="planning-section hidden" id="planningSection">
+                    <div class="planning-title">📋 Rencana Kerja AI</div>
+                    <div id="planningList"></div>
                 </div>
 
-                <!-- Normal Chat View -->
-                <div id="normalChatView" style="display: flex; flex-direction: column; flex: 1; overflow: hidden;">
-                    <!-- Planning Section (Above Chat) -->
-                    <div class="planning-section hidden" id="planningSection">
-                        <div class="planning-title">📋 Rencana Kerja AI</div>
-                        <div id="planningList"></div>
-                    </div>
+                <!-- Chat History -->
+                <div class="chat-history" id="chatMessages"></div>
 
-                    <!-- Chat History -->
-                    <div class="chat-history" id="chatMessages"></div>
-
-                    <!-- Input Area -->
-                    <div class="input-area">
-                        <div class="input-box">
-                            <textarea id="chatInput" placeholder="Ketik pertanyaan... (Enter: Kirim, Shift+Enter: Baris Baru)"></textarea>
-                            <button class="btn-send" id="sendBtn">SEND</button>
-                        </div>
+                <!-- Input Area -->
+                <div class="input-area">
+                    <div class="input-box">
+                        <textarea id="chatInput" placeholder="Ketik pertanyaan... (Enter: Kirim, Shift+Enter: Baris Baru)"></textarea>
+                        <button class="btn-send" id="sendBtn">SEND</button>
                     </div>
                 </div>
             </div>
@@ -481,7 +397,6 @@
     <script>
         const API_URL = 'https://xendra-ai.vincent-ssb88.workers.dev';
         let userPassword = '';
-        let currentPlan = null;
         let isProcessing = false;
         let chatMessages = [];
 
@@ -533,7 +448,6 @@
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
 
-                currentPlan = data.plan;
                 renderPlanningPhases(data.plan);
                 
                 // Add assistant response to chat
@@ -570,19 +484,23 @@
             messageDiv.className = `message ${role}`;
             
             let displayContent = content;
+            
             if (role === 'assistant') {
+                // Jika gambar (URL)
                 if (content.startsWith('http') && (content.includes('.jpg') || content.includes('.png') || content.includes('pollinations'))) {
-                    displayContent = `<img src="${content}" class="response-image" style="max-width: 100%; border-radius: 1rem;">`;
-                } else if (content.includes('<h1>') || content.includes('<h2>')) {
-                    // Artikel - tampilkan preview
-                    const preview = content.substring(0, 300) + '...';
-                    displayContent = preview;
-                } else if (content.includes('<pre>') || content.includes('<!DOCTYPE')) {
-                    // Kode - tampilkan dengan syntax highlighting
+                    displayContent = `<img src="${content}" style="max-width: 100%; border-radius: 1rem;">`;
+                } 
+                // Jika HTML (artikel)
+                else if (content.includes('<h1>') || content.includes('<h2>')) {
                     displayContent = content;
-                } else {
-                    // Chat biasa
-                    displayContent = content.substring(0, 200) + (content.length > 200 ? '...' : '');
+                } 
+                // Jika kode
+                else if (content.includes('<pre>') || content.includes('<!DOCTYPE')) {
+                    displayContent = content;
+                }
+                // Jika puisi atau teks panjang - TAMPILKAN PENUH TANPA DIPOTONG
+                else {
+                    displayContent = content; // Tampilkan semua tanpa dipotong
                 }
             }
 
@@ -594,6 +512,7 @@
                 hljs.highlightElement(block);
             });
             
+            // AUTO-SCROLL ke bawah
             chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         }
 
@@ -605,46 +524,11 @@
             }
 
             planningList.innerHTML = plan.phases.map((p, i) => `
-                <div class="phase-item" onclick="clickPhase(${i})">
+                <div class="phase-item">
                     <div class="phase-title">Phase ${i+1}: ${p.title}</div>
                     <div class="phase-desc">${p.description}</div>
                 </div>
             `).join('');
-        }
-
-        function clickPhase(index) {
-            if (!currentPlan) return;
-            
-            // Activate split view
-            document.getElementById('normalChatView').style.display = 'none';
-            document.getElementById('splitContainer').classList.add('active');
-
-            // Render planning panel
-            const planningContent = document.getElementById('planningContent');
-            planningContent.innerHTML = currentPlan.phases.map((p, i) => `
-                <div class="phase-item ${i === index ? 'active' : ''}" onclick="clickPhase(${i})">
-                    <div class="phase-title">Phase ${i+1}: ${p.title}</div>
-                    <div class="phase-desc">${p.description}</div>
-                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: #64748b;">
-                        ${p.detailedSteps ? p.detailedSteps.map(s => `<p>• ${s}</p>`).join('') : ''}
-                    </div>
-                </div>
-            `).join('');
-
-            // Render response
-            const responseContent = document.getElementById('responseContent');
-            const phase = currentPlan.phases[index];
-            if (phase.result) {
-                if (phase.result.startsWith('http')) {
-                    responseContent.innerHTML = `<img src="${phase.result}" class="response-image">`;
-                } else {
-                    responseContent.innerHTML = `<div class="response-box">${phase.result}</div>`;
-                    // Highlight code jika ada
-                    responseContent.querySelectorAll('pre code').forEach(block => {
-                        hljs.highlightElement(block);
-                    });
-                }
-            }
         }
 
         function resetChat() {
