@@ -3,56 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI Workspace</title>
+    <title>Xendra AI - Workspace</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <link rel="icon" type="image/png" href="fav.png" />
+        <link rel="icon" type="image/png" href="fav.png" />
     <style>
         :root { --bg: #09090b; --card: #18181b; --accent: #3b82f6; --border: #27272a; --text: #a1a1aa; }
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: white; overflow: hidden; }
+        
+        /* LOGIN */
         #loginScreen { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; }
         .login-box { background: var(--card); padding: 40px; border-radius: 12px; border: 1px solid var(--border); text-align: center; width: 320px; }
-        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 6px; border: 1px solid var(--border); background: #000; color: white; outline: none; }
+        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 6px; border: 1px solid var(--border); background: #000; color: white; outline: none; box-sizing: border-box; }
+        .login-box button { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
+
+        /* MAIN APP */
         .app-container { display: none; height: 100vh; width: 100vw; }
-        .sidebar { width: 260px; border-right: 1px solid var(--border); padding: 15px; }
-        .chat-area { flex: 1; display: flex; flex-direction: column; }
-        .messages { flex: 1; overflow-y: auto; padding: 25px; }
+        .sidebar { width: 260px; background: var(--bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 15px; }
+        .new-task { padding: 10px; background: #27272a; border-radius: 8px; text-align: center; margin-bottom: 20px; cursor: pointer; font-size: 14px; }
+        
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg); position: relative; }
+        .chat-header { height: 50px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; font-size: 14px; }
+        .messages { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; }
+        
         .input-box { padding: 20px; border-top: 1px solid var(--border); }
-        textarea { width: 100%; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: white; outline: none; resize: none; }
-        .split-panel { width: 45%; background: var(--card); border-left: 1px solid var(--border); display: none; }
-        .split-panel.active { display: flex; flex-direction: column; }
-        .user-bubble { background: var(--accent); padding: 10px 15px; border-radius: 12px 12px 0 12px; margin-bottom: 20px; float: right; clear: both; }
-        .ai-msg { margin-bottom: 30px; border-left: 2px solid var(--accent); padding-left: 15px; clear: both; }
+        .input-box textarea { width: 100%; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: white; resize: none; outline: none; font-size: 15px; }
+
+        .split-panel { width: 45%; background: var(--card); border-left: 1px solid var(--border); display: none; flex-direction: column; }
+        .split-panel.active { display: flex; }
+        .panel-header { height: 50px; background: #121214; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 15px; font-size: 12px; font-weight: bold; color: var(--accent); }
+        .panel-content { flex: 1; padding: 20px; overflow-y: auto; }
+
+        /* BUBBLES */
+        .user-msg { align-self: flex-end; background: var(--accent); padding: 10px 15px; border-radius: 15px 15px 0 15px; margin-bottom: 20px; max-width: 80%; }
+        .ai-msg { align-self: flex-start; margin-bottom: 30px; line-height: 1.7; border-left: 2px solid var(--accent); padding-left: 15px; width: 90%; }
     </style>
 </head>
 <body>
 
 <div id="loginScreen">
     <div class="login-box">
-        <h2 style="color:var(--accent)">Xendra AI</h2>
+        <h2 style="color:var(--accent); margin:0;">Xendra AI</h2>
         <input type="password" id="passInput" placeholder="Password..." onkeydown="if(event.key==='Enter') doLogin()">
-        <button onclick="doLogin()" style="width:100%; padding:12px; background:var(--accent); border:none; color:white; border-radius:6px; cursor:pointer;">Masuk</button>
+        <button onclick="doLogin()">Masuk</button>
     </div>
 </div>
 
 <div id="app" class="app-container">
     <div class="sidebar">
-        <div style="padding:10px; background:#27272a; border-radius:8px; text-align:center; cursor:pointer;">+ New Task</div>
+        <div class="new-task">+ New Task</div>
+        <div style="color:var(--text); font-size:12px; margin-top:10px; padding:10px;">💬 Perbandingan AI Xendra...</div>
     </div>
+
     <div class="chat-area">
-        <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between;">
+        <div class="chat-header">
             <span>Xendra 1.6 Lite ▾</span>
-            <button onclick="document.getElementById('rightPanel').classList.toggle('active')" style="background:none; border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer;">Split View</button>
+            <button onclick="document.getElementById('rightPanel').classList.toggle('active')" style="background:none; border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer; font-size:11px; padding:3px 10px;">Split View</button>
         </div>
         <div class="messages" id="chatMessages"></div>
         <div class="input-box">
-            <textarea id="promptInput" rows="2" placeholder="Tulis pesan... (Enter kirim)"></textarea>
+            <textarea id="promptInput" rows="2" placeholder="Tulis pesan... (Enter kirim, Shift+Enter baris baru)"></textarea>
         </div>
     </div>
+
     <div class="split-panel" id="rightPanel">
-        <div style="padding:15px; background:#121214; border-bottom:1px solid var(--border);">🖥️ XENDRA COMPUTER</div>
-        <div id="panelContent" style="padding:20px;"></div>
+        <div class="panel-header">🖥️ XENDRA COMPUTER</div>
+        <div class="panel-content" id="panelContent">
+            <p style="color:var(--text); font-size:13px;">Output visual akan muncul di sini.</p>
+        </div>
     </div>
 </div>
 
@@ -62,47 +81,61 @@
 
     function doLogin() {
         const val = document.getElementById('passInput').value;
-        if(val) { sessionPass = val; document.getElementById('loginScreen').style.display='none'; document.getElementById('app').style.display='flex'; }
+        if(val) {
+            sessionPass = val;
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+        }
     }
 
     promptInput.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+        if(e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendChat();
+        }
     });
 
     async function sendChat() {
-        const text = promptInput.value.trim();
-        if(!text) return;
+        const promptText = promptInput.value.trim();
+        if(!promptText) return;
 
         const msgDiv = document.getElementById('chatMessages');
-        msgDiv.innerHTML += `<div class="user-bubble">${text}</div>`;
+        msgDiv.innerHTML += `<div class="user-msg">${promptText.replace(/\n/g, '<br>')}</div>`;
         promptInput.value = "";
         msgDiv.scrollTop = msgDiv.scrollHeight;
 
         document.getElementById('rightPanel').classList.add('active');
-        document.getElementById('panelContent').innerHTML = "<i>Sedang memproses...</i>";
+        document.getElementById('panelContent').innerHTML = "<i>Xendra sedang memproses tugas...</i>";
 
         try {
-            const res = await fetch('https://xendra-ai.vincent-ssb88.workers.dev', {
+            // GANTI URL DI BAWAH INI DENGAN URL WORKER KAMU
+            const response = await fetch('https://xendra-ai.vincent-ssb88.workers.dev', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: text, password: sessionPass })
+                body: JSON.stringify({ 
+                    prompt: promptText, 
+                    password: sessionPass 
+                })
             });
 
-            const data = await res.json();
+            const data = await response.json();
 
-            if (res.status === 401) { alert("Password Salah!"); location.reload(); return; }
-            if (data.error) throw new Error(data.error);
+            if(response.status === 401) {
+                alert("Password Salah!");
+                location.reload();
+                return;
+            }
 
-            // Perbaikan: Cek jika data.answer ada sebelum di-parse
-            const htmlAnswer = data.answer ? marked.parse(data.answer) : "Maaf, AI tidak memberikan jawaban.";
-            msgDiv.innerHTML += `<div class="ai-msg"><b>Xendra AI:</b><br>${htmlAnswer}</div>`;
-            document.getElementById('panelContent').innerHTML = `<img src="${data.imageUrl}" style="width:100%; border-radius:8px;">`;
+            if(data.error) throw new Error(data.error);
+
+            msgDiv.innerHTML += `<div class="ai-msg"><b>Xendra AI:</b><br>${marked.parse(data.answer)}</div>`;
+            document.getElementById('panelContent').innerHTML = `<img src="${data.imageUrl}" style="width:100%; border-radius:8px; border:1px solid var(--border);">`;
             
             msgDiv.scrollTop = msgDiv.scrollHeight;
-            document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+            document.querySelectorAll('pre code').forEach((el) => hljs.highlightElement(el));
 
         } catch (e) {
-            msgDiv.innerHTML += `<div style="color:red; clear:both;">⚠️ ${e.message}</div>`;
+            msgDiv.innerHTML += `<div style="color:red; margin-bottom:20px;">⚠️ Error: ${e.message}</div>`;
         }
     }
 </script>
