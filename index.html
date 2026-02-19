@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XENDRA AI - Manus Style v7</title>
+    <title>XENDRA AI - Manus Style v8</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="icon" type="image/png" href="fav.png" />
     <style>
         * {
             margin: 0;
@@ -67,27 +68,68 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .login-input, .btn-login {
+        .login-subtitle {
+            color: #94a3b8;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .login-input {
             width: 100%;
             padding: 1rem;
             margin-bottom: 1rem;
             border-radius: 0.75rem;
             border: 1px solid rgba(148, 163, 184, 0.2);
-            font-size: 1rem;
-        }
-
-        .login-input {
             background: rgba(15, 23, 42, 0.5);
             color: #fff;
+            font-size: 1rem;
             text-align: center;
         }
 
+        .login-input:focus {
+            outline: none;
+            border-color: #00d4ff;
+            background: rgba(15, 23, 42, 0.8);
+        }
+
         .btn-login {
+            width: 100%;
+            padding: 1rem;
             background: linear-gradient(135deg, #00d4ff, #0099ff);
             color: #0f172a;
             border: none;
+            border-radius: 0.75rem;
             font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
         }
 
         /* Main Container */
@@ -95,6 +137,10 @@
             display: none;
             height: 100vh;
             flex-direction: column;
+        }
+
+        .container.show {
+            display: flex;
         }
 
         /* Header */
@@ -122,6 +168,11 @@
             color: #e2e8f0;
             border-radius: 0.5rem;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(30, 41, 59, 0.8);
         }
 
         /* Main Content */
@@ -152,6 +203,12 @@
             font-weight: 700;
             cursor: pointer;
             margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-new-chat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
         }
 
         /* Chat Area */
@@ -162,13 +219,13 @@
             overflow: hidden;
         }
 
-        /* Planning Section (Above Chat) */
+        /* Planning Section */
         .planning-section {
             background: rgba(30, 41, 59, 0.3);
             border: 1px solid rgba(148, 163, 184, 0.1);
             border-radius: 1rem;
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
+            margin: 1.5rem 1.5rem 0 1.5rem;
             max-height: 300px;
             overflow-y: auto;
         }
@@ -230,6 +287,12 @@
             display: flex;
             gap: 0.75rem;
             margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .message.user {
@@ -291,6 +354,10 @@
             outline: none;
         }
 
+        textarea::placeholder {
+            color: #64748b;
+        }
+
         .btn-send {
             background: linear-gradient(135deg, #00d4ff, #0099ff);
             color: #0f172a;
@@ -300,6 +367,12 @@
             font-weight: 700;
             cursor: pointer;
             height: 44px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-send:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 212, 255, 0.3);
         }
 
         .btn-send:disabled {
@@ -344,6 +417,7 @@
         /* Responsive */
         @media (max-width: 768px) {
             .sidebar { display: none; }
+            .message-content { max-width: 95%; }
         }
     </style>
 </head>
@@ -354,16 +428,17 @@
         <div class="login-card">
             <div class="login-logo">⚡</div>
             <h1 class="login-title">XENDRA AI</h1>
-            <p style="color: #94a3b8; margin-bottom: 2rem;">Masukkan password untuk memulai</p>
-            <input type="password" id="passwordInput" class="login-input" placeholder="Password">
+            <p class="login-subtitle">Masukkan password untuk memulai</p>
+            <input type="password" id="passwordInput" class="login-input" placeholder="Password" autocomplete="off">
             <button class="btn-login" id="loginBtn">ACCESS SYSTEM</button>
+            <div class="error-message" id="errorMessage"></div>
         </div>
     </div>
 
     <!-- Main Container -->
     <div class="container" id="mainContainer">
         <div class="header">
-            <div class="header-title">⚡ XENDRA AI v7</div>
+            <div class="header-title">⚡ XENDRA AI v8</div>
             <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
 
@@ -374,7 +449,7 @@
             </div>
 
             <div class="chat-area">
-                <!-- Planning Section (Above Chat) -->
+                <!-- Planning Section -->
                 <div class="planning-section hidden" id="planningSection">
                     <div class="planning-title">📋 Rencana Kerja AI</div>
                     <div id="planningList"></div>
@@ -400,22 +475,61 @@
         let isProcessing = false;
         let chatMessages = [];
 
-        // Login
-        document.getElementById('loginBtn').addEventListener('click', () => {
-            const pass = document.getElementById('passwordInput').value;
-            if (pass) {
-                userPassword = pass;
-                document.getElementById('loginScreen').style.display = 'none';
-                document.getElementById('mainContainer').style.display = 'flex';
-                document.getElementById('chatInput').focus();
-            }
-        });
-
+        // Login Handler
+        document.getElementById('loginBtn').addEventListener('click', handleLogin);
         document.getElementById('passwordInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+            if (e.key === 'Enter') handleLogin();
         });
 
-        // Send Message
+        async function handleLogin() {
+            const pass = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('errorMessage');
+            
+            if (!pass) {
+                showError('Masukkan password terlebih dahulu');
+                return;
+            }
+
+            // Disable button
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Verifying...';
+
+            try {
+                // Test connection dengan password
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: 'test', password: pass })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(data.error);
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = 'ACCESS SYSTEM';
+                } else {
+                    userPassword = pass;
+                    document.getElementById('loginScreen').style.display = 'none';
+                    document.getElementById('mainContainer').classList.add('show');
+                    document.getElementById('chatInput').focus();
+                }
+            } catch (err) {
+                showError('Connection error: ' + err.message);
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'ACCESS SYSTEM';
+            }
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.textContent = '❌ ' + message;
+            errorMsg.classList.add('show');
+            setTimeout(() => errorMsg.classList.remove('show'), 3000);
+        }
+
+        // Chat Handler
         const sendBtn = document.getElementById('sendBtn');
         const chatInput = document.getElementById('chatInput');
 
@@ -426,7 +540,7 @@
             isProcessing = true;
             sendBtn.disabled = true;
 
-            // Add user message to chat
+            // Add user message
             chatMessages.push({ role: 'user', content: msg });
             displayMessage(msg, 'user');
 
@@ -434,7 +548,7 @@
             chatInput.value = '';
             chatInput.style.height = '40px';
 
-            // Show planning section
+            // Show planning
             document.getElementById('planningSection').classList.remove('hidden');
             document.getElementById('planningList').innerHTML = '<div style="text-align:center;"><div class="loading-spinner" style="margin:0 auto;"></div><p style="margin-top:0.5rem; font-size:0.9rem;">AI sedang merencanakan tugas...</p></div>';
 
@@ -446,11 +560,12 @@
                 });
 
                 const data = await response.json();
-                if (data.error) throw new Error(data.error);
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
 
                 renderPlanningPhases(data.plan);
-                
-                // Add assistant response to chat
                 chatMessages.push({ role: 'assistant', content: data.response });
                 displayMessage(data.response, 'assistant');
 
@@ -486,33 +601,29 @@
             let displayContent = content;
             
             if (role === 'assistant') {
-                // Jika gambar (URL)
+                // Gambar
                 if (content.startsWith('http') && (content.includes('.jpg') || content.includes('.png') || content.includes('pollinations'))) {
                     displayContent = `<img src="${content}" style="max-width: 100%; border-radius: 1rem;">`;
                 } 
-                // Jika HTML (artikel)
+                // HTML (artikel)
                 else if (content.includes('<h1>') || content.includes('<h2>')) {
                     displayContent = content;
                 } 
-                // Jika kode
+                // Kode
                 else if (content.includes('<pre>') || content.includes('<!DOCTYPE')) {
                     displayContent = content;
-                }
-                // Jika puisi atau teks panjang - TAMPILKAN PENUH TANPA DIPOTONG
-                else {
-                    displayContent = content; // Tampilkan semua tanpa dipotong
                 }
             }
 
             messageDiv.innerHTML = `<div class="message-content">${displayContent}</div>`;
             chatMessagesDiv.appendChild(messageDiv);
             
-            // Highlight code jika ada
+            // Highlight code
             messageDiv.querySelectorAll('pre code').forEach(block => {
                 hljs.highlightElement(block);
             });
             
-            // AUTO-SCROLL ke bawah
+            // Auto-scroll
             chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         }
 
@@ -543,6 +654,11 @@
         function logout() {
             location.reload();
         }
+
+        // Auto-focus on load
+        window.addEventListener('load', () => {
+            document.getElementById('passwordInput').focus();
+        });
     </script>
 </body>
 </html>
