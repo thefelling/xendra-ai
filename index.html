@@ -3,83 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI - Manus Style v9</title>
+    <title>Xendra AI v10 - Final</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/png" href="fav.png" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        body {
+        * {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #f8fafc;
         }
 
-        .glass-panel {
+        .glass {
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .chat-container {
-            height: calc(100vh - 180px);
-        }
-
-        .split-view {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            height: calc(100vh - 100px);
-        }
-
-        .phase-card {
-            background: rgba(51, 65, 85, 0.5);
-            border-left: 4px solid #3b82f6;
+        .phase-badge {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
             transition: all 0.3s ease;
         }
 
-        .phase-card:hover {
-            background: rgba(51, 65, 85, 0.8);
-            transform: translateY(-2px);
+        .phase-badge:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
         }
 
-        .phase-card.active {
-            border-left: 4px solid #10b981;
-            background: rgba(16, 185, 129, 0.1);
-        }
-
-        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
-            font-weight: 700;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-            color: #3b82f6;
-        }
-
-        .markdown-body p {
-            margin-bottom: 1rem;
-            line-height: 1.6;
-        }
-
-        .markdown-body ul, .markdown-body ol {
-            margin-bottom: 1rem;
-            padding-left: 1.5rem;
-        }
-
-        .markdown-body li {
-            margin-bottom: 0.5rem;
-        }
-
-        .typing-indicator::after {
-            content: '...';
-            animation: typing 1.5s infinite;
-        }
-
-        @keyframes typing {
-            0% { content: '.'; }
-            33% { content: '..'; }
-            66% { content: '...'; }
+        .phase-badge.active {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.5);
         }
 
         #login-overlay {
@@ -96,13 +57,94 @@
             display: none !important;
         }
 
-        #chatInput {
-            resize: none;
-            max-height: 200px;
-            overflow-y: auto;
+        .markdown-content h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 2rem 0 1rem;
+            color: #3b82f6;
         }
 
-        /* Custom Scrollbar */
+        .markdown-content h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 1.5rem 0 0.75rem;
+            color: #60a5fa;
+        }
+
+        .markdown-content h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 1rem 0 0.5rem;
+            color: #93c5fd;
+        }
+
+        .markdown-content p {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+            color: #e2e8f0;
+        }
+
+        .markdown-content ul, .markdown-content ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        .markdown-content li {
+            margin-bottom: 0.5rem;
+            color: #cbd5e1;
+        }
+
+        .markdown-content code {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            color: #f87171;
+            font-size: 0.9em;
+        }
+
+        .markdown-content pre {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        .markdown-content pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .chat-message {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -118,120 +160,112 @@
         }
     </style>
 </head>
-<body class="antialiased overflow-hidden">
+<body>
 
     <!-- Login Overlay -->
     <div id="login-overlay">
-        <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
-            <div class="mb-6">
-                <i class="fas fa-bolt text-5xl text-blue-500 mb-4"></i>
+        <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-8">
+                <i class="fas fa-bolt text-5xl text-blue-500 mb-4 block"></i>
                 <h1 class="text-3xl font-bold">XENDRA AI</h1>
-                <p class="text-slate-400 mt-2">Masukkan password untuk memulai</p>
+                <p class="text-slate-400 mt-2 text-sm">v10 Final Edition</p>
             </div>
             <div class="space-y-4">
-                <input type="password" id="passwordInput" placeholder="Password" 
-                    class="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 outline-none text-center">
-                <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg shadow-blue-900/20">
-                    ACCESS SYSTEM
+                <input type="password" id="passwordInput" placeholder="Masukkan Password" 
+                    class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center focus:ring-2 focus:ring-blue-500 outline-none text-white placeholder-slate-500">
+                <button id="loginBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-xl transition shadow-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i> ACCESS SYSTEM
                 </button>
-                <p id="loginError" class="text-red-500 text-sm hidden">Password salah!</p>
+                <p id="loginError" class="text-red-500 text-sm text-center hidden">❌ Password salah!</p>
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div id="main-content" class="h-screen flex flex-col p-4 md:p-6 hide">
+    <!-- Main App -->
+    <div id="app" class="h-screen flex flex-col hide">
         <!-- Header -->
-        <header class="flex justify-between items-center mb-6">
+        <header class="glass border-b border-slate-700 px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <i class="fas fa-bolt text-blue-500 text-2xl"></i>
-                <h2 class="text-xl font-bold tracking-tight">XENDRA AI <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded ml-2">v9 FINAL</span></h2>
+                <div>
+                    <h1 class="text-xl font-bold">XENDRA AI</h1>
+                    <p class="text-xs text-slate-400">Powered by OpenAI</p>
+                </div>
             </div>
             <div class="flex items-center space-x-4">
-                <button id="newChatBtn" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition">
-                    <i class="fas fa-plus mr-2"></i> NEW CHAT
+                <button id="newChatBtn" class="bg-slate-700/50 hover:bg-slate-600 px-4 py-2 rounded-lg text-sm transition">
+                    <i class="fas fa-plus mr-2"></i> New Chat
                 </button>
-                <button id="logoutBtn" class="text-slate-400 hover:text-white text-sm transition">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <button id="logoutBtn" class="text-slate-400 hover:text-white transition">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </header>
 
-        <!-- Planning View (Manus Style) -->
-        <div id="planning-view" class="mb-6 overflow-x-auto whitespace-nowrap pb-2 hidden">
-            <div id="phase-container" class="flex space-x-4">
-                <!-- Phases will be injected here -->
-            </div>
-        </div>
+        <!-- Content Area -->
+        <div class="flex-grow overflow-hidden flex gap-4 p-4">
+            <!-- Chat View (Normal) -->
+            <div id="chat-view" class="w-full flex flex-col">
+                <div id="chat-container" class="flex-grow overflow-y-auto space-y-4 mb-4">
+                    <div class="text-center mt-20 text-slate-500">
+                        <i class="fas fa-robot text-6xl mb-4 block opacity-30"></i>
+                        <p class="text-lg font-medium">Halo! Saya Xendra AI</p>
+                        <p class="text-sm mt-2">Siap membantu membuat artikel, gambar, atau kode Anda</p>
+                    </div>
+                </div>
 
-        <!-- Chat & Result Area -->
-        <div id="content-area" class="flex-grow overflow-hidden">
-            <!-- Normal Chat View -->
-            <div id="chat-view" class="chat-container overflow-y-auto space-y-6 px-2">
-                <!-- Chat messages will be injected here -->
-                <div class="text-center mt-20 text-slate-500">
-                    <i class="fas fa-robot text-6xl mb-4 block opacity-20"></i>
-                    <p class="text-xl font-medium">Halo! Saya Xendra AI.</p>
-                    <p class="text-sm">Bantu saya membuat artikel SEO, gambar, atau kode hari ini.</p>
+                <!-- Input -->
+                <div class="glass rounded-xl p-3 flex gap-2">
+                    <textarea id="chatInput" placeholder="Tanya sesuatu... (Enter: Kirim, Shift+Enter: Baris Baru)" 
+                        class="flex-grow bg-transparent border-none focus:ring-0 outline-none text-white placeholder-slate-500 resize-none" rows="1"></textarea>
+                    <button id="sendBtn" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition disabled:opacity-50">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Split View (Hidden by default) -->
-            <div id="split-view" class="split-view hide">
-                <!-- Left: Planning Details -->
-                <div class="glass-panel rounded-2xl p-6 overflow-y-auto">
-                    <h3 class="text-lg font-bold mb-4 flex items-center">
-                        <i class="fas fa-list-check mr-2 text-blue-500"></i> Rencana Kerja AI
+            <div id="split-view" class="w-full grid grid-cols-2 gap-4 hide">
+                <!-- Left: Planning -->
+                <div class="glass rounded-xl p-6 overflow-y-auto flex flex-col">
+                    <h3 class="text-lg font-bold mb-4 flex items-center text-blue-400">
+                        <i class="fas fa-list-check mr-2"></i> Rencana Kerja
                     </h3>
-                    <div id="split-phase-list" class="space-y-4">
-                        <!-- Detailed phases will be injected here -->
+                    <div id="phase-list" class="space-y-3 flex-grow">
+                        <!-- Phases injected here -->
                     </div>
                 </div>
-                <!-- Right: Content Result -->
-                <div class="glass-panel rounded-2xl p-6 overflow-y-auto markdown-body" id="result-content">
-                    <!-- Result will be injected here -->
-                    <div class="flex items-center justify-center h-full text-slate-500 italic">
-                        Klik fase di kiri untuk melihat detail atau hasil...
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Input Area -->
-        <div class="mt-6 max-w-4xl mx-auto w-full relative">
-            <div class="glass-panel p-2 rounded-2xl shadow-xl flex items-end space-x-2">
-                <textarea id="chatInput" placeholder="Ketik pertanyaan... (Enter: Kirim, Shift+Enter: Baris Baru)" 
-                    class="flex-grow bg-transparent border-none p-4 focus:ring-0 outline-none text-slate-200 placeholder-slate-500" rows="1"></textarea>
-                <button id="sendBtn" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl transition shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
+                <!-- Right: Result -->
+                <div class="glass rounded-xl p-6 overflow-y-auto flex flex-col">
+                    <div id="result-container" class="markdown-content flex-grow">
+                        <!-- Result injected here -->
+                    </div>
+                </div>
             </div>
-            <p class="text-center text-[10px] text-slate-500 mt-2">Powered by OpenAI via Xendra Gateway</p>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://xendra-backend.vincent-ssb88.workers.dev/';
         let currentPassword = '';
-        let chatHistory = [];
         let isProcessing = false;
 
         // Elements
         const loginOverlay = document.getElementById('login-overlay');
-        const mainContent = document.getElementById('main-content');
+        const app = document.getElementById('app');
         const passwordInput = document.getElementById('passwordInput');
         const loginBtn = document.getElementById('loginBtn');
         const loginError = document.getElementById('loginError');
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
+        const chatContainer = document.getElementById('chat-container');
         const chatView = document.getElementById('chat-view');
-        const planningView = document.getElementById('planning-view');
-        const phaseContainer = document.getElementById('phase-container');
         const splitView = document.getElementById('split-view');
-        const resultContent = document.getElementById('result-content');
-        const splitPhaseList = document.getElementById('split-phase-list');
+        const phaseList = document.getElementById('phase-list');
+        const resultContainer = document.getElementById('result-container');
 
-        // Login Logic
+        // Login
         loginBtn.addEventListener('click', handleLogin);
         passwordInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
 
@@ -240,7 +274,7 @@
             if (pass) {
                 currentPassword = pass;
                 loginOverlay.classList.add('hide');
-                mainContent.classList.remove('hide');
+                app.classList.remove('hide');
                 chatInput.focus();
             } else {
                 loginError.classList.remove('hidden');
@@ -250,10 +284,10 @@
         // Auto-grow textarea
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
-            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
         });
 
-        // Send Logic
+        // Send message
         chatInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -267,23 +301,13 @@
             const message = chatInput.value.trim();
             if (!message || isProcessing) return;
 
-            // Reset UI for new message
             isProcessing = true;
             sendBtn.disabled = true;
+
+            // Add user message
+            addMessage('user', message);
             chatInput.value = '';
             chatInput.style.height = 'auto';
-            
-            // Add user message to UI
-            addChatMessage('user', message);
-            
-            // Show Planning
-            planningView.classList.remove('hidden');
-            phaseContainer.innerHTML = `
-                <div class="phase-card p-3 rounded-xl min-w-[200px] flex items-center space-x-3">
-                    <div class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
-                    <span class="text-sm font-medium typing-indicator">Xendra sedang berfikir</span>
-                </div>
-            `;
 
             try {
                 const response = await fetch(API_URL, {
@@ -294,116 +318,88 @@
 
                 const data = await response.json();
 
-                if (response.ok) {
-                    renderPhases(data.phases, data.message, data.imageUrl);
-                    addChatMessage('ai', data.message, data.imageUrl);
+                if (response.ok && data.status === 'success') {
+                    // Show split view with phases
+                    showSplitView(data);
+                    addMessage('ai', data.message, data.imageUrl);
                 } else {
-                    addChatMessage('error', data.error || 'Terjadi kesalahan sistem.');
+                    addMessage('error', data.error || 'Terjadi kesalahan');
                 }
             } catch (error) {
-                addChatMessage('error', 'Gagal terhubung ke server. Cek koneksi Anda.');
+                addMessage('error', 'Gagal terhubung ke server');
             } finally {
                 isProcessing = false;
                 sendBtn.disabled = false;
             }
         }
 
-        function addChatMessage(role, text, imageUrl = null) {
+        function addMessage(role, text, imageUrl = null) {
             const div = document.createElement('div');
-            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`;
-            
-            let content = '';
+            div.className = `chat-message flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
             if (role === 'error') {
-                content = `<div class="bg-red-900/30 border border-red-500/50 text-red-200 p-4 rounded-2xl max-w-[80%] flex items-center space-x-3">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>${text}</span>
-                </div>`;
+                div.innerHTML = `
+                    <div class="bg-red-900/30 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg max-w-md flex items-center gap-2">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>${text}</span>
+                    </div>
+                `;
             } else {
-                content = `
-                    <div class="${role === 'user' ? 'bg-blue-600 text-white' : 'glass-panel text-slate-200'} p-4 rounded-2xl max-w-[80%] shadow-lg">
-                        ${imageUrl ? `<img src="${imageUrl}" class="rounded-xl mb-4 w-full shadow-lg" alt="Generated Image">` : ''}
-                        <div class="markdown-body text-sm">${marked.parse(text || '')}</div>
+                const bgClass = role === 'user' ? 'bg-blue-600' : 'glass';
+                div.innerHTML = `
+                    <div class="${bgClass} px-4 py-3 rounded-lg max-w-2xl">
+                        ${imageUrl ? `<img src="${imageUrl}" class="rounded-lg mb-3 w-full max-h-64 object-cover shadow-lg" alt="Generated">` : ''}
+                        <div class="markdown-content text-sm">${marked.parse(text || '')}</div>
                     </div>
                 `;
             }
-            
-            div.innerHTML = content;
-            chatView.appendChild(div);
-            chatView.scrollTop = chatView.scrollHeight;
+
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function renderPhases(phases, fullResult, imageUrl) {
-            if (!phases || phases.length === 0) return;
-
-            phaseContainer.innerHTML = '';
-            splitPhaseList.innerHTML = '';
-
-            phases.forEach((phase, index) => {
-                // Top Planning Cards
-                const card = document.createElement('div');
-                card.className = 'phase-card p-3 rounded-xl min-w-[220px] cursor-pointer hover:bg-slate-700 transition';
-                card.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-slate-400 uppercase font-bold tracking-widest">PHASE ${index + 1}</span>
-                        <i class="fas fa-check-circle text-emerald-500 text-xs"></i>
-                    </div>
-                    <div class="text-sm font-semibold text-white mt-1">${phase.name}</div>
-                `;
-                card.onclick = () => showSplitView(fullResult, phases, index, imageUrl);
-                phaseContainer.appendChild(card);
-
-                // Split View List
-                const splitItem = document.createElement('div');
-                splitItem.className = `phase-card p-4 rounded-xl cursor-pointer ${index === 0 ? 'active' : ''}`;
-                splitItem.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <div class="h-6 w-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">${index + 1}</div>
-                        <div class="font-medium text-sm">${phase.name}</div>
-                    </div>
-                `;
-                splitItem.onclick = () => updateResultView(fullResult, index, imageUrl);
-                splitPhaseList.appendChild(splitItem);
-            });
-        }
-
-        function showSplitView(fullResult, phases, activeIndex, imageUrl) {
+        function showSplitView(data) {
             chatView.classList.add('hide');
             splitView.classList.remove('hide');
-            updateResultView(fullResult, activeIndex, imageUrl);
-        }
 
-        function updateResultView(fullResult, index, imageUrl) {
-            // Update active state in list
-            const items = splitPhaseList.querySelectorAll('.phase-card');
-            items.forEach((item, i) => {
-                if (i === index) item.classList.add('active');
-                else item.classList.remove('active');
-            });
-
-            // For now, show the full result. In future, can show specific phase results.
-            let content = marked.parse(fullResult || '');
-            if (imageUrl && index === 3) { // If it's the image phase
-                content = `<img src="${imageUrl}" class="rounded-xl mb-6 w-full shadow-2xl border border-white/10" alt="Final Result">` + content;
+            // Render phases
+            phaseList.innerHTML = '';
+            if (data.phases && data.phases.length > 0) {
+                data.phases.forEach((phase, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'phase-badge p-3 rounded-lg cursor-pointer';
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center text-xs font-bold">${i+1}</div>
+                            <div>
+                                <div class="text-sm font-semibold">${phase.name}</div>
+                                <div class="text-xs text-slate-400">${phase.status}</div>
+                            </div>
+                        </div>
+                    `;
+                    phaseList.appendChild(div);
+                });
             }
-            resultContent.innerHTML = content;
-            resultContent.scrollTop = 0;
+
+            // Show result
+            resultContainer.innerHTML = marked.parse(data.message || '');
         }
 
-        // Logout
-        document.getElementById('logoutBtn').onclick = () => window.location.reload();
-        
         // New Chat
         document.getElementById('newChatBtn').onclick = () => {
-            chatView.innerHTML = `
+            chatContainer.innerHTML = `
                 <div class="text-center mt-20 text-slate-500">
-                    <i class="fas fa-robot text-6xl mb-4 block opacity-20"></i>
-                    <p class="text-xl font-medium">Chat Baru Dimulai.</p>
+                    <i class="fas fa-robot text-6xl mb-4 block opacity-30"></i>
+                    <p class="text-lg font-medium">Chat Baru Dimulai</p>
                 </div>
             `;
             chatView.classList.remove('hide');
             splitView.classList.add('hide');
-            planningView.classList.add('hidden');
+            chatInput.focus();
         };
+
+        // Logout
+        document.getElementById('logoutBtn').onclick = () => window.location.reload();
     </script>
 </body>
 </html>
