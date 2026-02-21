@@ -3,129 +3,407 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI - Workspace</title>
+    <title>Xendra AI - Manus Style v9</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" type="image/png" href="fav.png" />
     <style>
-        :root { --bg: #09090b; --card: #18181b; --accent: #3b82f6; --border: #27272a; --text: #a1a1aa; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: white; overflow: hidden; }
-
-        /* Pintu Masuk / Login */
-        #loginScreen { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; }
-        .login-box { background: var(--card); padding: 40px; border-radius: 12px; border: 1px solid var(--border); text-align: center; width: 320px; }
-        .login-box input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 6px; border: 1px solid var(--border); background: #000; color: white; outline: none; }
-        .login-box button { width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer; }
-
-        /* Dashboard Layout */
-        .app-container { display: none; height: 100vh; width: 100vw; }
-        .sidebar { width: 260px; background: var(--bg); border-right: 1px solid var(--border); padding: 15px; }
-        .chat-area { flex: 1; display: flex; flex-direction: column; position: relative; }
-        .chat-header { height: 50px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; justify-content: space-between; }
-        .messages { flex: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; }
-        .input-box { padding: 20px; border-top: 1px solid var(--border); }
-        textarea { width: 100%; padding: 15px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; color: white; resize: none; outline: none; }
-
-        /* Split Screen (Kanan) */
-        .split-panel { width: 45%; background: var(--card); border-left: 1px solid var(--border); display: none; flex-direction: column; }
-        .split-panel.active { display: flex; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
-        .user-bubble { align-self: flex-end; background: var(--accent); padding: 10px 15px; border-radius: 12px 12px 0 12px; margin-bottom: 20px; max-width: 80%; }
-        .ai-bubble { align-self: flex-start; margin-bottom: 30px; border-left: 3px solid var(--accent); padding-left: 15px; line-height: 1.6; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-container {
+            height: calc(100vh - 180px);
+        }
+
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 100px);
+        }
+
+        .phase-card {
+            background: rgba(51, 65, 85, 0.5);
+            border-left: 4px solid #3b82f6;
+            transition: all 0.3s ease;
+        }
+
+        .phase-card:hover {
+            background: rgba(51, 65, 85, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .phase-card.active {
+            border-left: 4px solid #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-weight: 700;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+
+        .markdown-body p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .markdown-body ul, .markdown-body ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .markdown-body li {
+            margin-bottom: 0.5rem;
+        }
+
+        .typing-indicator::after {
+            content: '...';
+            animation: typing 1.5s infinite;
+        }
+
+        @keyframes typing {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+
+        #login-overlay {
+            position: fixed;
+            inset: 0;
+            background: #0f172a;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hide {
+            display: none !important;
+        }
+
+        #chatInput {
+            resize: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
     </style>
 </head>
-<body>
+<body class="antialiased overflow-hidden">
 
-<div id="loginScreen">
-    <div class="login-box">
-        <h2 style="color:var(--accent)">Xendra AI</h2>
-        <input type="password" id="passInput" placeholder="Ketik Password..." onkeydown="if(event.key==='Enter') doLogin()">
-        <button onclick="doLogin()">Masuk Workspace</button>
-    </div>
-</div>
-
-<div id="app" class="app-container">
-    <div class="sidebar">
-        <div style="background:#27272a; padding:10px; border-radius:8px; text-align:center; cursor:pointer;">+ New Task</div>
-    </div>
-    <div class="chat-area">
-        <div class="chat-header">
-            <span>Xendra 1.6 Lite ▾</span>
-            <button onclick="document.getElementById('rightPanel').classList.toggle('active')" style="background:none; border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer; font-size:11px;">Split View</button>
-        </div>
-        <div class="messages" id="chatMessages"></div>
-        <div class="input-box">
-            <textarea id="promptInput" rows="2" placeholder="Tanya apa saja... (Enter untuk kirim)"></textarea>
+    <!-- Login Overlay -->
+    <div id="login-overlay">
+        <div class="glass-panel p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
+            <div class="mb-6">
+                <i class="fas fa-bolt text-5xl text-blue-500 mb-4"></i>
+                <h1 class="text-3xl font-bold">XENDRA AI</h1>
+                <p class="text-slate-400 mt-2">Masukkan password untuk memulai</p>
+            </div>
+            <div class="space-y-4">
+                <input type="password" id="passwordInput" placeholder="Password" 
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl p-4 focus:ring-2 focus:ring-blue-500 outline-none text-center">
+                <button id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition duration-300 shadow-lg shadow-blue-900/20">
+                    ACCESS SYSTEM
+                </button>
+                <p id="loginError" class="text-red-500 text-sm hidden">Password salah!</p>
+            </div>
         </div>
     </div>
-    <div class="split-panel" id="rightPanel">
-        <div style="padding:15px; background:#121214; border-bottom:1px solid var(--border); font-size:12px;">🖥️ XENDRA COMPUTER</div>
-        <div id="panelContent" style="padding:20px;"></div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="h-screen flex flex-col p-4 md:p-6 hide">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-bolt text-blue-500 text-2xl"></i>
+                <h2 class="text-xl font-bold tracking-tight">XENDRA AI <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded ml-2">v9 FINAL</span></h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="newChatBtn" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition">
+                    <i class="fas fa-plus mr-2"></i> NEW CHAT
+                </button>
+                <button id="logoutBtn" class="text-slate-400 hover:text-white text-sm transition">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <!-- Planning View (Manus Style) -->
+        <div id="planning-view" class="mb-6 overflow-x-auto whitespace-nowrap pb-2 hidden">
+            <div id="phase-container" class="flex space-x-4">
+                <!-- Phases will be injected here -->
+            </div>
+        </div>
+
+        <!-- Chat & Result Area -->
+        <div id="content-area" class="flex-grow overflow-hidden">
+            <!-- Normal Chat View -->
+            <div id="chat-view" class="chat-container overflow-y-auto space-y-6 px-2">
+                <!-- Chat messages will be injected here -->
+                <div class="text-center mt-20 text-slate-500">
+                    <i class="fas fa-robot text-6xl mb-4 block opacity-20"></i>
+                    <p class="text-xl font-medium">Halo! Saya Xendra AI.</p>
+                    <p class="text-sm">Bantu saya membuat artikel SEO, gambar, atau kode hari ini.</p>
+                </div>
+            </div>
+
+            <!-- Split View (Hidden by default) -->
+            <div id="split-view" class="split-view hide">
+                <!-- Left: Planning Details -->
+                <div class="glass-panel rounded-2xl p-6 overflow-y-auto">
+                    <h3 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fas fa-list-check mr-2 text-blue-500"></i> Rencana Kerja AI
+                    </h3>
+                    <div id="split-phase-list" class="space-y-4">
+                        <!-- Detailed phases will be injected here -->
+                    </div>
+                </div>
+                <!-- Right: Content Result -->
+                <div class="glass-panel rounded-2xl p-6 overflow-y-auto markdown-body" id="result-content">
+                    <!-- Result will be injected here -->
+                    <div class="flex items-center justify-center h-full text-slate-500 italic">
+                        Klik fase di kiri untuk melihat detail atau hasil...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="mt-6 max-w-4xl mx-auto w-full relative">
+            <div class="glass-panel p-2 rounded-2xl shadow-xl flex items-end space-x-2">
+                <textarea id="chatInput" placeholder="Ketik pertanyaan... (Enter: Kirim, Shift+Enter: Baris Baru)" 
+                    class="flex-grow bg-transparent border-none p-4 focus:ring-0 outline-none text-slate-200 placeholder-slate-500" rows="1"></textarea>
+                <button id="sendBtn" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl transition shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <p class="text-center text-[10px] text-slate-500 mt-2">Powered by OpenAI via Xendra Gateway</p>
+        </div>
     </div>
-</div>
 
-<script>
-    let sessionPass = "";
-    const promptInput = document.getElementById('promptInput');
+    <script>
+        const API_URL = 'https://xendra-backend.vincent-ssb88.workers.dev/';
+        let currentPassword = '';
+        let chatHistory = [];
+        let isProcessing = false;
 
-    function doLogin() {
-        const val = document.getElementById('passInput').value;
-        if(val) {
-            sessionPass = val; // Ini yang akan dikirim ke Cloudflare
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('app').style.display = 'flex';
+        // Elements
+        const loginOverlay = document.getElementById('login-overlay');
+        const mainContent = document.getElementById('main-content');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginError = document.getElementById('loginError');
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatView = document.getElementById('chat-view');
+        const planningView = document.getElementById('planning-view');
+        const phaseContainer = document.getElementById('phase-container');
+        const splitView = document.getElementById('split-view');
+        const resultContent = document.getElementById('result-content');
+        const splitPhaseList = document.getElementById('split-phase-list');
+
+        // Login Logic
+        loginBtn.addEventListener('click', handleLogin);
+        passwordInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
+
+        function handleLogin() {
+            const pass = passwordInput.value.trim();
+            if (pass) {
+                currentPassword = pass;
+                loginOverlay.classList.add('hide');
+                mainContent.classList.remove('hide');
+                chatInput.focus();
+            } else {
+                loginError.classList.remove('hidden');
+            }
         }
-    }
 
-    promptInput.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendChat();
+        // Auto-grow textarea
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        // Send Logic
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message || isProcessing) return;
+
+            // Reset UI for new message
+            isProcessing = true;
+            sendBtn.disabled = true;
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            
+            // Add user message to UI
+            addChatMessage('user', message);
+            
+            // Show Planning
+            planningView.classList.remove('hidden');
+            phaseContainer.innerHTML = `
+                <div class="phase-card p-3 rounded-xl min-w-[200px] flex items-center space-x-3">
+                    <div class="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+                    <span class="text-sm font-medium typing-indicator">Xendra sedang berfikir</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, password: currentPassword })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    renderPhases(data.phases, data.message, data.imageUrl);
+                    addChatMessage('ai', data.message, data.imageUrl);
+                } else {
+                    addChatMessage('error', data.error || 'Terjadi kesalahan sistem.');
+                }
+            } catch (error) {
+                addChatMessage('error', 'Gagal terhubung ke server. Cek koneksi Anda.');
+            } finally {
+                isProcessing = false;
+                sendBtn.disabled = false;
+            }
         }
-    });
 
-    async function sendChat() {
-        const promptText = promptInput.value.trim();
-        if(!promptText) return;
+        function addChatMessage(role, text, imageUrl = null) {
+            const div = document.createElement('div');
+            div.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`;
+            
+            let content = '';
+            if (role === 'error') {
+                content = `<div class="bg-red-900/30 border border-red-500/50 text-red-200 p-4 rounded-2xl max-w-[80%] flex items-center space-x-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>${text}</span>
+                </div>`;
+            } else {
+                content = `
+                    <div class="${role === 'user' ? 'bg-blue-600 text-white' : 'glass-panel text-slate-200'} p-4 rounded-2xl max-w-[80%] shadow-lg">
+                        ${imageUrl ? `<img src="${imageUrl}" class="rounded-xl mb-4 w-full shadow-lg" alt="Generated Image">` : ''}
+                        <div class="markdown-body text-sm">${marked.parse(text || '')}</div>
+                    </div>
+                `;
+            }
+            
+            div.innerHTML = content;
+            chatView.appendChild(div);
+            chatView.scrollTop = chatView.scrollHeight;
+        }
 
-        const msgDiv = document.getElementById('chatMessages');
-        msgDiv.innerHTML += `<div class="user-bubble">${promptText.replace(/\n/g, '<br>')}</div>`;
-        promptInput.value = "";
-        msgDiv.scrollTop = msgDiv.scrollHeight;
+        function renderPhases(phases, fullResult, imageUrl) {
+            if (!phases || phases.length === 0) return;
 
-        document.getElementById('rightPanel').classList.add('active');
-        document.getElementById('panelContent').innerHTML = "<i>Xendra sedang berfikir...</i>";
+            phaseContainer.innerHTML = '';
+            splitPhaseList.innerHTML = '';
 
-        try {
-            // PASTIKAN URL WORKER KAMU BENAR
-            const response = await fetch('https://xendra-ai.vincent-ssb88.workers.dev', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    prompt: promptText, 
-                    password: sessionPass 
-                })
+            phases.forEach((phase, index) => {
+                // Top Planning Cards
+                const card = document.createElement('div');
+                card.className = 'phase-card p-3 rounded-xl min-w-[220px] cursor-pointer hover:bg-slate-700 transition';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-slate-400 uppercase font-bold tracking-widest">PHASE ${index + 1}</span>
+                        <i class="fas fa-check-circle text-emerald-500 text-xs"></i>
+                    </div>
+                    <div class="text-sm font-semibold text-white mt-1">${phase.name}</div>
+                `;
+                card.onclick = () => showSplitView(fullResult, phases, index, imageUrl);
+                phaseContainer.appendChild(card);
+
+                // Split View List
+                const splitItem = document.createElement('div');
+                splitItem.className = `phase-card p-4 rounded-xl cursor-pointer ${index === 0 ? 'active' : ''}`;
+                splitItem.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <div class="h-6 w-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold">${index + 1}</div>
+                        <div class="font-medium text-sm">${phase.name}</div>
+                    </div>
+                `;
+                splitItem.onclick = () => updateResultView(fullResult, index, imageUrl);
+                splitPhaseList.appendChild(splitItem);
+            });
+        }
+
+        function showSplitView(fullResult, phases, activeIndex, imageUrl) {
+            chatView.classList.add('hide');
+            splitView.classList.remove('hide');
+            updateResultView(fullResult, activeIndex, imageUrl);
+        }
+
+        function updateResultView(fullResult, index, imageUrl) {
+            // Update active state in list
+            const items = splitPhaseList.querySelectorAll('.phase-card');
+            items.forEach((item, i) => {
+                if (i === index) item.classList.add('active');
+                else item.classList.remove('active');
             });
 
-            const data = await response.json();
-
-            if (response.status === 401) {
-                alert("Password Salah di Server Cloudflare!");
-                location.reload();
-                return;
+            // For now, show the full result. In future, can show specific phase results.
+            let content = marked.parse(fullResult || '');
+            if (imageUrl && index === 3) { // If it's the image phase
+                content = `<img src="${imageUrl}" class="rounded-xl mb-6 w-full shadow-2xl border border-white/10" alt="Final Result">` + content;
             }
-
-            msgDiv.innerHTML += `<div class="ai-bubble"><b>Xendra:</b><br>${marked.parse(data.answer)}</div>`;
-            document.getElementById('panelContent').innerHTML = `<img src="${data.imageUrl}" style="width:100%; border-radius:8px;">`;
-            
-            msgDiv.scrollTop = msgDiv.scrollHeight;
-            document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
-
-        } catch (e) {
-            msgDiv.innerHTML += `<div style="color:red; clear:both;">Error: ${e.message}</div>`;
+            resultContent.innerHTML = content;
+            resultContent.scrollTop = 0;
         }
-    }
-</script>
+
+        // Logout
+        document.getElementById('logoutBtn').onclick = () => window.location.reload();
+        
+        // New Chat
+        document.getElementById('newChatBtn').onclick = () => {
+            chatView.innerHTML = `
+                <div class="text-center mt-20 text-slate-500">
+                    <i class="fas fa-robot text-6xl mb-4 block opacity-20"></i>
+                    <p class="text-xl font-medium">Chat Baru Dimulai.</p>
+                </div>
+            `;
+            chatView.classList.remove('hide');
+            splitView.classList.add('hide');
+            planningView.classList.add('hidden');
+        };
+    </script>
 </body>
 </html>
