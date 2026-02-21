@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI v12 - Final Edition</title>
+    <title>Xendra AI v12.1 - Image Fix</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <link rel="icon" type="image/png" href="fav.png" />
+    <link rel="icon" type="image/png" href="fav.png" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -109,6 +109,15 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
+        .result-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1.5rem;
+        }
+
         .chat-message {
             animation: slideIn 0.3s ease-out;
         }
@@ -155,13 +164,13 @@
 </head>
 <body>
 
-    <!-- Login Overlay (FINAL SECURE) -->
+    <!-- Login Overlay -->
     <div id="login-overlay">
         <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md">
             <div class="text-center mb-8">
                 <i class="fas fa-bolt text-5xl text-blue-500 mb-4 block"></i>
                 <h1 class="text-3xl font-bold">XENDRA AI</h1>
-                <p class="text-slate-400 mt-2 text-sm">v12 Final Edition</p>
+                <p class="text-slate-400 mt-2 text-sm">v12.1 Image Fix Edition</p>
             </div>
             <div class="space-y-4">
                 <div class="relative">
@@ -188,7 +197,7 @@
                 <i class="fas fa-bolt text-blue-500 text-2xl"></i>
                 <div>
                     <h1 class="text-xl font-bold">XENDRA AI</h1>
-                    <p class="text-xs text-slate-400">v12 Final - Continuous Chat</p>
+                    <p class="text-xs text-slate-400">v12.1 Image Fix - Continuous Chat</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -229,9 +238,18 @@
                     <h3 class="text-lg font-bold mb-4 flex items-center text-blue-400">
                         <i class="fas fa-list-check mr-2"></i> Hasil & Rencana
                     </h3>
+                    
+                    <!-- Image Container (FIX: Ditampilkan di sini) -->
+                    <div id="result-image-container" class="mb-6">
+                        <!-- Image akan ditampilkan di sini -->
+                    </div>
+
+                    <!-- Phases -->
                     <div id="phase-list" class="space-y-2 mb-6">
                         <!-- Phases injected here -->
                     </div>
+
+                    <!-- Result Content -->
                     <div id="result-container" class="markdown-content">
                         <!-- Result injected here -->
                     </div>
@@ -261,6 +279,7 @@
         const sendBtn = document.getElementById('sendBtn');
         const chatContainer = document.getElementById('chat-container');
         const resultSection = document.getElementById('result-section');
+        const resultImageContainer = document.getElementById('result-image-container');
         const phaseList = document.getElementById('phase-list');
         const resultContainer = document.getElementById('result-container');
 
@@ -424,14 +443,27 @@
         }
 
         function showResult(data) {
-            resultContainer.innerHTML = marked.parse(data.message || '');
-            if (data.imageUrl) {
+            // FIX: Clear image container first
+            resultImageContainer.innerHTML = '';
+
+            // FIX: Display image if available (PENTING!)
+            if (data.imageUrl && data.imageUrl.trim() !== '') {
                 const img = document.createElement('img');
                 img.src = data.imageUrl;
-                img.className = 'rounded-lg w-full max-h-96 object-cover shadow-lg mb-4';
-                img.onerror = function() { this.style.display = 'none'; };
-                resultContainer.insertBefore(img, resultContainer.firstChild);
+                img.className = 'result-image';
+                img.alt = 'Generated Image';
+                img.onerror = function() { 
+                    console.log('Image failed to load:', data.imageUrl);
+                    this.style.display = 'none'; 
+                };
+                img.onload = function() {
+                    console.log('Image loaded successfully');
+                };
+                resultImageContainer.appendChild(img);
             }
+
+            // Display text content
+            resultContainer.innerHTML = marked.parse(data.message || '');
         }
 
         document.getElementById('newChatBtn').onclick = () => {
@@ -442,6 +474,7 @@
                 </div>
             `;
             resultSection.classList.add('hidden');
+            resultImageContainer.innerHTML = '';
             conversationContext = [];
             chatInput.focus();
         };
