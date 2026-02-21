@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI v11 - Ultimate</title>
+    <title>Xendra AI v12 - Secure Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/png" href="fav.png" />
+     <link rel="icon" type="image/png" href="fav.png" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -155,21 +155,27 @@
 </head>
 <body>
 
-    <!-- Login Overlay -->
+    <!-- Login Overlay (SECURE) -->
     <div id="login-overlay">
         <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md">
             <div class="text-center mb-8">
                 <i class="fas fa-bolt text-5xl text-blue-500 mb-4 block"></i>
                 <h1 class="text-3xl font-bold">XENDRA AI</h1>
-                <p class="text-slate-400 mt-2 text-sm">v11 Ultimate Edition</p>
+                <p class="text-slate-400 mt-2 text-sm">v12 Secure Edition</p>
             </div>
             <div class="space-y-4">
-                <input type="password" id="passwordInput" placeholder="Masukkan Password" 
-                    class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center focus:ring-2 focus:ring-blue-500 outline-none text-white placeholder-slate-500">
+                <div class="relative">
+                    <input type="password" id="passwordInput" placeholder="Masukkan Password" 
+                        class="w-full bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center focus:ring-2 focus:ring-blue-500 outline-none text-white placeholder-slate-500">
+                    <div id="passwordStatus" class="absolute right-4 top-4 hidden">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
                 <button id="loginBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-xl transition shadow-lg">
                     <i class="fas fa-sign-in-alt mr-2"></i> ACCESS SYSTEM
                 </button>
                 <p id="loginError" class="text-red-500 text-sm text-center hidden">❌ Password salah!</p>
+                <p id="loginInfo" class="text-blue-400 text-xs text-center">Verifikasi password dengan server...</p>
             </div>
         </div>
     </div>
@@ -182,7 +188,7 @@
                 <i class="fas fa-bolt text-blue-500 text-2xl"></i>
                 <div>
                     <h1 class="text-xl font-bold">XENDRA AI</h1>
-                    <p class="text-xs text-slate-400">v11 Ultimate - Continuous Chat</p>
+                    <p class="text-xs text-slate-400">v12 Secure - Continuous Chat</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -239,6 +245,7 @@
         let currentPassword = '';
         let isProcessing = false;
         let conversationContext = [];
+        let isAuthenticated = false;
 
         // Elements
         const loginOverlay = document.getElementById('login-overlay');
@@ -246,6 +253,8 @@
         const passwordInput = document.getElementById('passwordInput');
         const loginBtn = document.getElementById('loginBtn');
         const loginError = document.getElementById('loginError');
+        const loginInfo = document.getElementById('loginInfo');
+        const passwordStatus = document.getElementById('passwordStatus');
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
         const chatContainer = document.getElementById('chat-container');
@@ -254,19 +263,57 @@
         const phaseList = document.getElementById('phase-list');
         const resultContainer = document.getElementById('result-container');
 
-        // Login
+        // Login Handler (SECURE - Verifies with Backend)
         loginBtn.addEventListener('click', handleLogin);
         passwordInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
 
-        function handleLogin() {
+        async function handleLogin() {
             const pass = passwordInput.value.trim();
-            if (pass) {
-                currentPassword = pass;
-                loginOverlay.classList.add('hide');
-                app.classList.remove('hide');
-                chatInput.focus();
-            } else {
+            if (!pass) {
+                loginError.textContent = '❌ Masukkan password terlebih dahulu!';
                 loginError.classList.remove('hidden');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            passwordStatus.classList.remove('hidden');
+            loginInfo.textContent = 'Verifikasi password dengan server...';
+            loginError.classList.add('hidden');
+
+            try {
+                // SECURE: Verify password with backend
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'verify_password',
+                        password: pass
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.authenticated) {
+                    // Password verified! Login successful
+                    currentPassword = pass;
+                    isAuthenticated = true;
+                    loginOverlay.classList.add('hide');
+                    app.classList.remove('hide');
+                    chatInput.focus();
+                } else {
+                    // Password incorrect
+                    loginError.textContent = '❌ Password salah! Coba lagi.';
+                    loginError.classList.remove('hidden');
+                    loginInfo.textContent = 'Verifikasi gagal';
+                    passwordInput.value = '';
+                }
+            } catch (error) {
+                loginError.textContent = '❌ Gagal terhubung ke server: ' + error.message;
+                loginError.classList.remove('hidden');
+                loginInfo.textContent = 'Koneksi error';
+            } finally {
+                loginBtn.disabled = false;
+                passwordStatus.classList.add('hidden');
             }
         }
 
@@ -288,7 +335,7 @@
 
         async function sendMessage() {
             const message = chatInput.value.trim();
-            if (!message || isProcessing) return;
+            if (!message || isProcessing || !isAuthenticated) return;
 
             isProcessing = true;
             sendBtn.disabled = true;
@@ -306,6 +353,7 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
+                        action: 'chat',
                         message, 
                         password: currentPassword,
                         context: conversationContext
@@ -411,7 +459,12 @@
         };
 
         // Logout
-        document.getElementById('logoutBtn').onclick = () => window.location.reload();
+        document.getElementById('logoutBtn').onclick = () => {
+            isAuthenticated = false;
+            currentPassword = '';
+            conversationContext = [];
+            window.location.reload();
+        };
     </script>
 </body>
 </html>
