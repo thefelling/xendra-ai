@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI v10 - Final</title>
-    <link rel="icon" type="image/png" href="fav.png" />
+    <title>Xendra AI v11 - Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="fav.png" />
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -26,22 +26,6 @@
             background: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .phase-badge {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .phase-badge:hover {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: rgba(59, 130, 246, 0.5);
-        }
-
-        .phase-badge.active {
-            background: rgba(16, 185, 129, 0.2);
-            border-color: rgba(16, 185, 129, 0.5);
         }
 
         #login-overlay {
@@ -117,6 +101,14 @@
             color: inherit;
         }
 
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1rem 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
         .chat-message {
             animation: slideIn 0.3s ease-out;
         }
@@ -169,7 +161,7 @@
             <div class="text-center mb-8">
                 <i class="fas fa-bolt text-5xl text-blue-500 mb-4 block"></i>
                 <h1 class="text-3xl font-bold">XENDRA AI</h1>
-                <p class="text-slate-400 mt-2 text-sm">v10 Final Edition</p>
+                <p class="text-slate-400 mt-2 text-sm">v11 Ultimate Edition</p>
             </div>
             <div class="space-y-4">
                 <input type="password" id="passwordInput" placeholder="Masukkan Password" 
@@ -190,7 +182,7 @@
                 <i class="fas fa-bolt text-blue-500 text-2xl"></i>
                 <div>
                     <h1 class="text-xl font-bold">XENDRA AI</h1>
-                    <p class="text-xs text-slate-400">Powered by OpenAI</p>
+                    <p class="text-xs text-slate-400">v11 Ultimate - Continuous Chat</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -205,8 +197,8 @@
 
         <!-- Content Area -->
         <div class="flex-grow overflow-hidden flex gap-4 p-4">
-            <!-- Chat View (Normal) -->
-            <div id="chat-view" class="w-full flex flex-col">
+            <!-- Left: Chat View (Always Visible) -->
+            <div id="chat-section" class="w-full lg:w-1/2 flex flex-col">
                 <div id="chat-container" class="flex-grow overflow-y-auto space-y-4 mb-4">
                     <div class="text-center mt-20 text-slate-500">
                         <i class="fas fa-robot text-6xl mb-4 block opacity-30"></i>
@@ -215,7 +207,7 @@
                     </div>
                 </div>
 
-                <!-- Input -->
+                <!-- Input (ALWAYS VISIBLE) -->
                 <div class="glass rounded-xl p-3 flex gap-2">
                     <textarea id="chatInput" placeholder="Tanya sesuatu... (Enter: Kirim, Shift+Enter: Baris Baru)" 
                         class="flex-grow bg-transparent border-none focus:ring-0 outline-none text-white placeholder-slate-500 resize-none" rows="1"></textarea>
@@ -225,21 +217,16 @@
                 </div>
             </div>
 
-            <!-- Split View (Hidden by default) -->
-            <div id="split-view" class="w-full grid grid-cols-2 gap-4 hide">
-                <!-- Left: Planning -->
-                <div class="glass rounded-xl p-6 overflow-y-auto flex flex-col">
+            <!-- Right: Result View (Appears on Split) -->
+            <div id="result-section" class="hidden lg:flex w-1/2 flex-col">
+                <div class="glass rounded-xl p-6 overflow-y-auto flex-grow">
                     <h3 class="text-lg font-bold mb-4 flex items-center text-blue-400">
-                        <i class="fas fa-list-check mr-2"></i> Rencana Kerja
+                        <i class="fas fa-list-check mr-2"></i> Hasil & Rencana
                     </h3>
-                    <div id="phase-list" class="space-y-3 flex-grow">
+                    <div id="phase-list" class="space-y-2 mb-6">
                         <!-- Phases injected here -->
                     </div>
-                </div>
-
-                <!-- Right: Result -->
-                <div class="glass rounded-xl p-6 overflow-y-auto flex flex-col">
-                    <div id="result-container" class="markdown-content flex-grow">
+                    <div id="result-container" class="markdown-content">
                         <!-- Result injected here -->
                     </div>
                 </div>
@@ -251,6 +238,7 @@
         const API_URL = 'https://xendra-backend.vincent-ssb88.workers.dev/';
         let currentPassword = '';
         let isProcessing = false;
+        let conversationContext = [];
 
         // Elements
         const loginOverlay = document.getElementById('login-overlay');
@@ -261,8 +249,8 @@
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
         const chatContainer = document.getElementById('chat-container');
-        const chatView = document.getElementById('chat-view');
-        const splitView = document.getElementById('split-view');
+        const chatSection = document.getElementById('chat-section');
+        const resultSection = document.getElementById('result-section');
         const phaseList = document.getElementById('phase-list');
         const resultContainer = document.getElementById('result-container');
 
@@ -310,27 +298,46 @@
             chatInput.value = '';
             chatInput.style.height = 'auto';
 
+            // Add to context
+            conversationContext.push({ role: 'user', content: message });
+
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message, password: currentPassword })
+                    body: JSON.stringify({ 
+                        message, 
+                        password: currentPassword,
+                        context: conversationContext
+                    })
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.status === 'success') {
-                    // Show split view with phases
-                    showSplitView(data);
+                    // Show result section
+                    resultSection.classList.remove('hidden');
+                    
+                    // Show phases
+                    showPhases(data.phases);
+                    
+                    // Show result with image if available
+                    showResult(data);
+                    
+                    // Add to context
+                    conversationContext.push({ role: 'assistant', content: data.message });
+                    
+                    // Add AI message to chat
                     addMessage('ai', data.message, data.imageUrl);
                 } else {
                     addMessage('error', data.error || 'Terjadi kesalahan');
                 }
             } catch (error) {
-                addMessage('error', 'Gagal terhubung ke server');
+                addMessage('error', 'Gagal terhubung ke server: ' + error.message);
             } finally {
                 isProcessing = false;
                 sendBtn.disabled = false;
+                chatInput.focus();
             }
         }
 
@@ -349,7 +356,7 @@
                 const bgClass = role === 'user' ? 'bg-blue-600' : 'glass';
                 div.innerHTML = `
                     <div class="${bgClass} px-4 py-3 rounded-lg max-w-2xl">
-                        ${imageUrl ? `<img src="${imageUrl}" class="rounded-lg mb-3 w-full max-h-64 object-cover shadow-lg" alt="Generated">` : ''}
+                        ${imageUrl ? `<img src="${imageUrl}" class="rounded-lg mb-3 w-full max-h-64 object-cover shadow-lg" alt="Generated" onerror="this.style.display='none'">` : ''}
                         <div class="markdown-content text-sm">${marked.parse(text || '')}</div>
                     </div>
                 `;
@@ -359,31 +366,35 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function showSplitView(data) {
-            chatView.classList.add('hide');
-            splitView.classList.remove('hide');
-
-            // Render phases
+        function showPhases(phases) {
             phaseList.innerHTML = '';
-            if (data.phases && data.phases.length > 0) {
-                data.phases.forEach((phase, i) => {
+            if (phases && phases.length > 0) {
+                phases.forEach((phase, i) => {
                     const div = document.createElement('div');
-                    div.className = 'phase-badge p-3 rounded-lg cursor-pointer';
+                    div.className = 'bg-blue-900/20 border border-blue-500/30 p-2 rounded text-xs';
                     div.innerHTML = `
                         <div class="flex items-center gap-2">
-                            <div class="w-6 h-6 rounded-full bg-blue-500/30 flex items-center justify-center text-xs font-bold">${i+1}</div>
+                            <div class="w-5 h-5 rounded-full bg-green-500/30 flex items-center justify-center text-xs">✓</div>
                             <div>
-                                <div class="text-sm font-semibold">${phase.name}</div>
-                                <div class="text-xs text-slate-400">${phase.status}</div>
+                                <div class="font-semibold text-blue-300">${phase.name}</div>
+                                <div class="text-slate-400">${phase.status}</div>
                             </div>
                         </div>
                     `;
                     phaseList.appendChild(div);
                 });
             }
+        }
 
-            // Show result
+        function showResult(data) {
             resultContainer.innerHTML = marked.parse(data.message || '');
+            if (data.imageUrl) {
+                const img = document.createElement('img');
+                img.src = data.imageUrl;
+                img.className = 'rounded-lg w-full max-h-96 object-cover shadow-lg mb-4';
+                img.onerror = function() { this.style.display = 'none'; };
+                resultContainer.insertBefore(img, resultContainer.firstChild);
+            }
         }
 
         // New Chat
@@ -394,8 +405,8 @@
                     <p class="text-lg font-medium">Chat Baru Dimulai</p>
                 </div>
             `;
-            chatView.classList.remove('hide');
-            splitView.classList.add('hide');
+            resultSection.classList.add('hidden');
+            conversationContext = [];
             chatInput.focus();
         };
 
