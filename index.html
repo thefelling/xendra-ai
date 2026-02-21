@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI v12 - Secure Edition</title>
+    <title>Xendra AI v12 - Final Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
@@ -155,13 +155,13 @@
 </head>
 <body>
 
-    <!-- Login Overlay (SECURE) -->
+    <!-- Login Overlay (FINAL SECURE) -->
     <div id="login-overlay">
         <div class="glass p-8 rounded-2xl shadow-2xl w-full max-w-md">
             <div class="text-center mb-8">
                 <i class="fas fa-bolt text-5xl text-blue-500 mb-4 block"></i>
                 <h1 class="text-3xl font-bold">XENDRA AI</h1>
-                <p class="text-slate-400 mt-2 text-sm">v12 Secure Edition</p>
+                <p class="text-slate-400 mt-2 text-sm">v12 Final Edition</p>
             </div>
             <div class="space-y-4">
                 <div class="relative">
@@ -174,8 +174,8 @@
                 <button id="loginBtn" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-xl transition shadow-lg">
                     <i class="fas fa-sign-in-alt mr-2"></i> ACCESS SYSTEM
                 </button>
-                <p id="loginError" class="text-red-500 text-sm text-center hidden">❌ Password salah!</p>
-                <p id="loginInfo" class="text-blue-400 text-xs text-center">Verifikasi password dengan server...</p>
+                <p id="loginError" class="text-red-500 text-sm text-center hidden"></p>
+                <p id="loginInfo" class="text-blue-400 text-xs text-center">Siap untuk login</p>
             </div>
         </div>
     </div>
@@ -188,7 +188,7 @@
                 <i class="fas fa-bolt text-blue-500 text-2xl"></i>
                 <div>
                     <h1 class="text-xl font-bold">XENDRA AI</h1>
-                    <p class="text-xs text-slate-400">v12 Secure - Continuous Chat</p>
+                    <p class="text-xs text-slate-400">v12 Final - Continuous Chat</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -241,7 +241,9 @@
     </div>
 
     <script>
+        // PENTING: Ganti URL ini dengan URL Cloudflare Worker Anda
         const API_URL = 'https://xendra-backend.vincent-ssb88.workers.dev/';
+        
         let currentPassword = '';
         let isProcessing = false;
         let conversationContext = [];
@@ -258,30 +260,27 @@
         const chatInput = document.getElementById('chatInput');
         const sendBtn = document.getElementById('sendBtn');
         const chatContainer = document.getElementById('chat-container');
-        const chatSection = document.getElementById('chat-section');
         const resultSection = document.getElementById('result-section');
         const phaseList = document.getElementById('phase-list');
         const resultContainer = document.getElementById('result-container');
 
-        // Login Handler (SECURE - Verifies with Backend)
+        // Login Handler
         loginBtn.addEventListener('click', handleLogin);
         passwordInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') handleLogin(); });
 
         async function handleLogin() {
             const pass = passwordInput.value.trim();
             if (!pass) {
-                loginError.textContent = '❌ Masukkan password terlebih dahulu!';
-                loginError.classList.remove('hidden');
+                showLoginError('Masukkan password terlebih dahulu!');
                 return;
             }
 
             loginBtn.disabled = true;
             passwordStatus.classList.remove('hidden');
-            loginInfo.textContent = 'Verifikasi password dengan server...';
+            loginInfo.textContent = 'Verifikasi password...';
             loginError.classList.add('hidden');
 
             try {
-                // SECURE: Verify password with backend
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -294,27 +293,28 @@
                 const data = await response.json();
 
                 if (response.ok && data.authenticated) {
-                    // Password verified! Login successful
                     currentPassword = pass;
                     isAuthenticated = true;
                     loginOverlay.classList.add('hide');
                     app.classList.remove('hide');
                     chatInput.focus();
                 } else {
-                    // Password incorrect
-                    loginError.textContent = '❌ Password salah! Coba lagi.';
-                    loginError.classList.remove('hidden');
-                    loginInfo.textContent = 'Verifikasi gagal';
+                    showLoginError('Password salah! Coba lagi.');
                     passwordInput.value = '';
+                    loginInfo.textContent = 'Verifikasi gagal';
                 }
             } catch (error) {
-                loginError.textContent = '❌ Gagal terhubung ke server: ' + error.message;
-                loginError.classList.remove('hidden');
+                showLoginError('Gagal terhubung ke server: ' + error.message);
                 loginInfo.textContent = 'Koneksi error';
             } finally {
                 loginBtn.disabled = false;
                 passwordStatus.classList.add('hidden');
             }
+        }
+
+        function showLoginError(msg) {
+            loginError.textContent = '❌ ' + msg;
+            loginError.classList.remove('hidden');
         }
 
         // Auto-grow textarea
@@ -340,12 +340,10 @@
             isProcessing = true;
             sendBtn.disabled = true;
 
-            // Add user message
             addMessage('user', message);
             chatInput.value = '';
             chatInput.style.height = 'auto';
 
-            // Add to context
             conversationContext.push({ role: 'user', content: message });
 
             try {
@@ -363,19 +361,10 @@
                 const data = await response.json();
 
                 if (response.ok && data.status === 'success') {
-                    // Show result section
                     resultSection.classList.remove('hidden');
-                    
-                    // Show phases
                     showPhases(data.phases);
-                    
-                    // Show result with image if available
                     showResult(data);
-                    
-                    // Add to context
                     conversationContext.push({ role: 'assistant', content: data.message });
-                    
-                    // Add AI message to chat
                     addMessage('ai', data.message, data.imageUrl);
                 } else {
                     addMessage('error', data.error || 'Terjadi kesalahan');
@@ -417,7 +406,7 @@
         function showPhases(phases) {
             phaseList.innerHTML = '';
             if (phases && phases.length > 0) {
-                phases.forEach((phase, i) => {
+                phases.forEach((phase) => {
                     const div = document.createElement('div');
                     div.className = 'bg-blue-900/20 border border-blue-500/30 p-2 rounded text-xs';
                     div.innerHTML = `
@@ -445,7 +434,6 @@
             }
         }
 
-        // New Chat
         document.getElementById('newChatBtn').onclick = () => {
             chatContainer.innerHTML = `
                 <div class="text-center mt-20 text-slate-500">
@@ -458,7 +446,6 @@
             chatInput.focus();
         };
 
-        // Logout
         document.getElementById('logoutBtn').onclick = () => {
             isAuthenticated = false;
             currentPassword = '';
