@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xendra AI v12.1 - Image Fix</title>
+    <title>Xendra AI v13 - Persistent Session</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
@@ -170,7 +170,7 @@
             <div class="text-center mb-8">
                 <i class="fas fa-bolt text-5xl text-blue-500 mb-4 block"></i>
                 <h1 class="text-3xl font-bold">XENDRA AI</h1>
-                <p class="text-slate-400 mt-2 text-sm">v12.1 Image Fix Edition</p>
+                <p class="text-slate-400 mt-2 text-sm">v13 Persistent Session</p>
             </div>
             <div class="space-y-4">
                 <div class="relative">
@@ -197,7 +197,7 @@
                 <i class="fas fa-bolt text-blue-500 text-2xl"></i>
                 <div>
                     <h1 class="text-xl font-bold">XENDRA AI</h1>
-                    <p class="text-xs text-slate-400">v12.1 Image Fix - Continuous Chat</p>
+                    <p class="text-xs text-slate-400">v13 Persistent - Global History</p>
                 </div>
             </div>
             <div class="flex items-center space-x-4">
@@ -239,7 +239,7 @@
                         <i class="fas fa-list-check mr-2"></i> Hasil & Rencana
                     </h3>
                     
-                    <!-- Image Container (FIX: Ditampilkan di sini) -->
+                    <!-- Image Container -->
                     <div id="result-image-container" class="mb-6">
                         <!-- Image akan ditampilkan di sini -->
                     </div>
@@ -260,7 +260,9 @@
 
     <script>
         // PENTING: Ganti URL ini dengan URL Cloudflare Worker Anda
-        const API_URL = 'https://xendra-backend.beautifulplace.workers.dev/';
+        const API_URL = 'https://xendra-backend.vincent-ssb88.workers.dev/';
+        const SESSION_KEY = 'xendra_session';
+        const PASSWORD_KEY = 'xendra_password';
         
         let currentPassword = '';
         let isProcessing = false;
@@ -282,6 +284,52 @@
         const resultImageContainer = document.getElementById('result-image-container');
         const phaseList = document.getElementById('phase-list');
         const resultContainer = document.getElementById('result-container');
+
+        // Initialize: Cek apakah user sudah login sebelumnya
+        window.addEventListener('load', initializeApp);
+
+        async function initializeApp() {
+            const savedPassword = localStorage.getItem(PASSWORD_KEY);
+            
+            if (savedPassword) {
+                // User sudah pernah login, verifikasi ulang
+                currentPassword = savedPassword;
+                await verifyAndLogin();
+            }
+        }
+
+        async function verifyAndLogin() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'verify_password',
+                        password: currentPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.authenticated) {
+                    isAuthenticated = true;
+                    loginOverlay.classList.add('hide');
+                    app.classList.remove('hide');
+                    
+                    // Load history dari KV
+                    await loadChatHistory();
+                    chatInput.focus();
+                } else {
+                    // Password tidak valid lagi, hapus dari localStorage
+                    localStorage.removeItem(PASSWORD_KEY);
+                    currentPassword = '';
+                }
+            } catch (error) {
+                console.error('Verification failed:', error);
+                localStorage.removeItem(PASSWORD_KEY);
+                currentPassword = '';
+            }
+        }
 
         // Login Handler
         loginBtn.addEventListener('click', handleLogin);
@@ -314,8 +362,15 @@
                 if (response.ok && data.authenticated) {
                     currentPassword = pass;
                     isAuthenticated = true;
+                    
+                    // Simpan password ke localStorage (untuk persistent session)
+                    localStorage.setItem(PASSWORD_KEY, pass);
+                    
                     loginOverlay.classList.add('hide');
                     app.classList.remove('hide');
+                    
+                    // Load history dari KV
+                    await loadChatHistory();
                     chatInput.focus();
                 } else {
                     showLoginError('Password salah! Coba lagi.');
@@ -334,6 +389,51 @@
         function showLoginError(msg) {
             loginError.textContent = '❌ ' + msg;
             loginError.classList.remove('hidden');
+        }
+
+        // Load Chat History dari KV Storage
+        async function loadChatHistory() {
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        action: 'get_history',
+                        password: currentPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.history && data.history.length > 0) {
+                    // Clear chat container
+                    chatContainer.innerHTML = '';
+                    
+                    // Load history
+                    conversationContext = data.history;
+                    
+                    // Display history messages
+                    data.history.forEach(msg => {
+                        if (msg.role === 'user') {
+                            addMessage('user', msg.content);
+                        } else {
+                            addMessage('ai', msg.content);
+                        }
+                    });
+                } else {
+                    // Tidak ada history, tampilkan welcome message
+                    chatContainer.innerHTML = `
+                        <div class="text-center mt-20 text-slate-500">
+                            <i class="fas fa-robot text-6xl mb-4 block opacity-30"></i>
+                            <p class="text-lg font-medium">Halo! Saya Xendra AI</p>
+                            <p class="text-sm mt-2">Siap membantu membuat artikel, gambar, atau kode Anda</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+                // Jika gagal load history, tetap bisa chat
+            }
         }
 
         // Auto-grow textarea
@@ -443,10 +543,8 @@
         }
 
         function showResult(data) {
-            // FIX: Clear image container first
             resultImageContainer.innerHTML = '';
 
-            // FIX: Display image if available (PENTING!)
             if (data.imageUrl && data.imageUrl.trim() !== '') {
                 const img = document.createElement('img');
                 img.src = data.imageUrl;
@@ -462,7 +560,6 @@
                 resultImageContainer.appendChild(img);
             }
 
-            // Display text content
             resultContainer.innerHTML = marked.parse(data.message || '');
         }
 
@@ -480,6 +577,8 @@
         };
 
         document.getElementById('logoutBtn').onclick = () => {
+            // Hapus session dari localStorage
+            localStorage.removeItem(PASSWORD_KEY);
             isAuthenticated = false;
             currentPassword = '';
             conversationContext = [];
